@@ -104,19 +104,14 @@
     {
       "name": "Improved Open-vocabulary Segmentation with Diffusion Models",
       "summary": "Developed a fusion module combining visual and textual embeddings, improving segmentation accuracy on open-vocabulary datasets.",
-      "highlights": [
-        "Implemented model training and inference in PyTorch.",
-        "Evaluated prompt-engineering techniques."
-      ],
+      "highlights": ["Implemented model training and inference in PyTorch.", "Evaluated prompt-engineering techniques."],
       "startDate": "2023-11-01",
       "endDate": "2024-01-01"
     },
     {
       "name": "Paint Like Painters: Image-Generation with Diffusion-based Autoregressive Framework",
       "summary": "Implemented an autoregressive image generation framework with diffusion-based masking.",
-      "highlights": [
-        "Built training pipeline and inference engine, compared performance with one-shot diffusion baselines."
-      ],
+      "highlights": ["Built training pipeline and inference engine, compared performance with one-shot diffusion baselines."],
       "startDate": "2023-09-01",
       "endDate": "2024-01-01"
     }

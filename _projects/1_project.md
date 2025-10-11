@@ -23,12 +23,13 @@ category: work
 ---
 
 ### Project Overview
-**IOSD (Improved Open-vocabulary Segmentation with Diffusion Models)** introduces a novel diffusion-based framework for open-vocabulary semantic segmentation.  
-Built upon *Grounded Diffusion* and *Stable Diffusion XL*, IOSD enhances segmentation quality and text–image alignment by:
 
-- Extracting multi-scale latent features from all U-Net layers  
-- Introducing a transformer-based visual–text fusion module  
-- Using prompt engineering and mask filtering for better generalization  
+**IOSD (Improved Open-vocabulary Segmentation with Diffusion Models)** introduces a novel diffusion-based framework for open-vocabulary semantic segmentation.  
+Built upon _Grounded Diffusion_ and _Stable Diffusion XL_, IOSD enhances segmentation quality and text–image alignment by:
+
+- Extracting multi-scale latent features from all U-Net layers
+- Introducing a transformer-based visual–text fusion module
+- Using prompt engineering and mask filtering for better generalization
 
 IOSD achieves **state-of-the-art zero-shot segmentation** performance on COCO and PASCAL VOC datasets, enabling models to understand and segment arbitrary visual concepts described in text.
 
@@ -56,13 +57,13 @@ IOSD achieves **state-of-the-art zero-shot segmentation** performance on COCO an
   Overall architecture of IOSD. The model integrates multi-layer U-Net features with a transformer-based fusion head to enable fine-grained open-vocabulary semantic segmentation.
 </div>
 
-
-- **Backbone:** Stable Diffusion XL-Turbo (base-1.0)  
-- **Training framework:** MMDetection + Grounded-SAM integration  
-- **Datasets:** PASCAL VOC 2012, COCO 2017  
+- **Backbone:** Stable Diffusion XL-Turbo (base-1.0)
+- **Training framework:** MMDetection + Grounded-SAM integration
+- **Datasets:** PASCAL VOC 2012, COCO 2017
 - **Metrics:** mIoU, PQ, ZS-mIoU (zero-shot mean IoU)
 
 ---
+
 <h3>Quantitative Results</h3>
 
 <p>
