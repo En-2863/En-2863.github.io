@@ -2,7 +2,7 @@
 layout: page
 title: projects
 permalink: /projects/
-description: A growing collection of your cool projects.
+description: Selected research and side projects in AI and systems.
 nav: true
 nav_order: 3
 display_categories: [work, fun]
