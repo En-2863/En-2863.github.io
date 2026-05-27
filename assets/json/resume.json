@@ -64,6 +64,15 @@
   ],
   "work": [
     {
+      "name": "Cisco",
+      "position": "Research Intern",
+      "url": "https://www.cisco.com/",
+      "startDate": "2026-05-26",
+      "endDate": "",
+      "summary": "Research intern working on systems for machine learning and large language models.",
+      "highlights": []
+    },
+    {
       "name": "Tempo: SLO-aware LLM Serving System",
       "position": "Core Developer",
       "url": "https://arxiv.org/abs/",
