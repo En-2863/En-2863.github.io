@@ -1,0 +1,743 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>视频生成推理成本计算器</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --surface-1: transparent;
+        --surface-2: rgba(0, 0, 0, 0.04);
+        --border: rgba(0, 0, 0, 0.12);
+        --grid: rgba(0, 0, 0, 0.08);
+        --text-primary: #0b0b0b;
+        --text-secondary: #52514e;
+        --text-muted: #7a7974;
+        --accent: #2a78d6;
+        --gap: #fcfcfb;
+        --series-1: #2a78d6;
+        --series-2: #eb6834;
+        --series-3: #1baf7a;
+        --series-4: #eda100;
+        --series-5: #e87ba4;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:where(:not([data-theme="light"])) {
+          color-scheme: dark;
+          --surface-2: rgba(255, 255, 255, 0.05);
+          --border: rgba(255, 255, 255, 0.14);
+          --grid: rgba(255, 255, 255, 0.08);
+          --text-primary: #f0efec;
+          --text-secondary: #c3c2b7;
+          --text-muted: #8f8e86;
+          --accent: #3987e5;
+          --gap: #1a1a19;
+          --series-1: #3987e5;
+          --series-2: #d95926;
+          --series-3: #199e70;
+          --series-4: #c98500;
+          --series-5: #d55181;
+        }
+      }
+      :root[data-theme="dark"] {
+        color-scheme: dark;
+        --surface-2: rgba(255, 255, 255, 0.05);
+        --border: rgba(255, 255, 255, 0.14);
+        --grid: rgba(255, 255, 255, 0.08);
+        --text-primary: #f0efec;
+        --text-secondary: #c3c2b7;
+        --text-muted: #8f8e86;
+        --accent: #3987e5;
+        --gap: #1a1a19;
+        --series-1: #3987e5;
+        --series-2: #d95926;
+        --series-3: #199e70;
+        --series-4: #c98500;
+        --series-5: #d55181;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        background: var(--surface-1);
+        color: var(--text-primary);
+        font:
+          14px/1.5 -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          "PingFang SC",
+          "Hiragino Sans GB",
+          "Microsoft YaHei",
+          sans-serif;
+      }
+      .wrap {
+        padding: 4px 16px 16px;
+        max-width: 960px;
+        margin: 0 auto;
+      }
+      h2 {
+        font-size: 15px;
+        margin: 20px 0 8px;
+        font-weight: 600;
+      }
+      .hint {
+        color: var(--text-secondary);
+        font-size: 13px;
+        margin: 0 0 8px;
+      }
+
+      /* controls */
+      .controls {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 10px 20px;
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--surface-2);
+      }
+      .ctl label {
+        display: flex;
+        justify-content: space-between;
+        font-size: 13px;
+        color: var(--text-secondary);
+      }
+      .ctl output {
+        color: var(--text-primary);
+        font-variant-numeric: tabular-nums;
+        font-weight: 600;
+      }
+      .ctl input[type="range"],
+      .ctl select {
+        width: 100%;
+        margin: 4px 0 0;
+        accent-color: var(--accent);
+      }
+      .ctl select {
+        padding: 3px 4px;
+        background: transparent;
+        color: var(--text-primary);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        font: inherit;
+      }
+      .ctl.check label {
+        justify-content: flex-start;
+        gap: 6px;
+        align-items: center;
+        margin-top: 18px;
+      }
+      details.adv {
+        grid-column: 1 / -1;
+      }
+      details.adv summary {
+        cursor: pointer;
+        color: var(--text-secondary);
+        font-size: 13px;
+      }
+      details.adv .controls {
+        margin-top: 8px;
+        background: transparent;
+      }
+
+      /* stat tiles */
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+        gap: 10px;
+        margin: 14px 0 4px;
+      }
+      .stat {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 8px 12px;
+      }
+      .stat .k {
+        font-size: 12px;
+        color: var(--text-secondary);
+      }
+      .stat .v {
+        font-size: 22px;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+      }
+      .stat .s {
+        font-size: 12px;
+        color: var(--text-muted);
+      }
+
+      /* legend */
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px 16px;
+        font-size: 13px;
+        color: var(--text-secondary);
+        margin: 4px 0 8px;
+      }
+      .legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .legend i {
+        width: 10px;
+        height: 10px;
+        border-radius: 2px;
+        display: inline-block;
+      }
+
+      /* bars */
+      .rows {
+        display: grid;
+        grid-template-columns: 64px 1fr 108px;
+        gap: 6px 10px;
+        align-items: center;
+      }
+      .rows .lab {
+        font-size: 13px;
+        color: var(--text-secondary);
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+      .rows .lab.cur {
+        color: var(--text-primary);
+        font-weight: 600;
+      }
+      .rows .tot {
+        font-size: 13px;
+        color: var(--text-secondary);
+        font-variant-numeric: tabular-nums;
+      }
+      .bar {
+        display: flex;
+        gap: 2px;
+        height: 22px;
+        position: relative;
+        background-image: linear-gradient(to right, var(--grid) 1px, transparent 1px);
+        background-size: 25% 100%;
+      }
+      .seg {
+        height: 100%;
+        min-width: 0;
+        cursor: default;
+      }
+      .seg:first-child {
+        border-radius: 4px 0 0 4px;
+      }
+      .seg:last-child {
+        border-radius: 0 4px 4px 0;
+      }
+      .seg:only-child {
+        border-radius: 4px;
+      }
+      .seg:hover {
+        filter: brightness(1.08);
+        outline: 2px solid var(--text-primary);
+        outline-offset: -2px;
+      }
+      .axis {
+        display: grid;
+        grid-template-columns: 64px 1fr 108px;
+        gap: 10px;
+        font-size: 11px;
+        color: var(--text-muted);
+      }
+      .axis .ticks {
+        display: flex;
+        justify-content: space-between;
+      }
+
+      #tip {
+        position: fixed;
+        pointer-events: none;
+        background: var(--text-primary);
+        color: var(--gap);
+        font-size: 12px;
+        padding: 6px 8px;
+        border-radius: 6px;
+        opacity: 0;
+        transition: opacity 0.08s;
+        white-space: nowrap;
+        z-index: 10;
+      }
+
+      details.tbl summary,
+      details.assume summary {
+        cursor: pointer;
+        color: var(--text-secondary);
+        font-size: 13px;
+        margin-top: 14px;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        font-size: 12px;
+        margin-top: 6px;
+        font-variant-numeric: tabular-nums;
+      }
+      th,
+      td {
+        border-bottom: 1px solid var(--grid);
+        padding: 4px 6px;
+        text-align: right;
+      }
+      th:first-child,
+      td:first-child {
+        text-align: left;
+      }
+      th {
+        color: var(--text-secondary);
+        font-weight: 600;
+      }
+      .assume ul {
+        font-size: 12px;
+        color: var(--text-secondary);
+        padding-left: 18px;
+        margin: 6px 0;
+      }
+      .tblwrap {
+        overflow-x: auto;
+      }
+      .rows .na {
+        font-size: 12px;
+        color: var(--text-muted);
+        height: 22px;
+        display: flex;
+        align-items: center;
+      }
+      .abs {
+        height: 22px;
+        background-image: linear-gradient(to right, var(--grid) 1px, transparent 1px);
+        background-size: 25% 100%;
+      }
+      .abs .bar {
+        background: none;
+      }
+      .rows .lab.cliff {
+        border-top: 1px dashed var(--text-muted);
+        padding-top: 4px;
+      }
+      .warn {
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--series-4);
+        border-radius: 6px;
+        padding: 6px 10px;
+        font-size: 13px;
+        color: var(--text-secondary);
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <p class="hint">解析估算，非实测 benchmark。用于比较计算量与并行趋势；默认参数未经硬件校准，未检查峰值显存或生成质量。</p>
+      <div class="controls" id="controls">
+        <div class="ctl">
+          <label for="model">模型</label>
+          <select id="model">
+            <option value="wan13">Wan2.1 1.3B</option>
+            <option value="wan5" selected>Wan2.2 TI2V 5B</option>
+            <option value="wan14">Wan2.1 14B</option>
+          </select>
+        </div>
+        <div class="ctl">
+          <label for="res">分辨率</label>
+          <select id="res">
+            <option value="480">480p (832×480)</option>
+            <option value="720" selected>720p (1280×704)</option>
+          </select>
+        </div>
+        <div class="ctl">
+          <label for="dur">视频时长 <output id="durO"></output></label>
+          <input id="dur" type="range" min="1" max="60" step="1" value="5" />
+        </div>
+        <div class="ctl">
+          <label for="fps">帧率（决定帧数）</label>
+          <select id="fps">
+            <option value="16" selected>16 fps（统一比较口径）</option>
+            <option value="24">24 fps（Wan2.2 5B 默认）</option>
+          </select>
+        </div>
+        <div class="ctl">
+          <label for="steps">推理步数 <output id="stepsO"></output></label>
+          <input id="steps" type="range" min="1" max="50" step="1" value="50" />
+        </div>
+        <div class="ctl">
+          <label for="keep">attention 保留比例 <output id="keepO"></output></label>
+          <input id="keep" type="range" min="5" max="100" step="5" value="100" />
+        </div>
+        <div class="ctl">
+          <label for="gpus">GPU 数 <output id="gpusO"></output></label>
+          <input id="gpus" type="range" min="0" max="5" step="1" value="0" />
+        </div>
+        <div class="ctl">
+          <label for="sp">Sequence parallel 方式</label>
+          <select id="sp">
+            <option value="usp" selected>USP（机内 Ulysses + Ring）</option>
+            <option value="ulysses">仅 Ulysses</option>
+            <option value="ring">仅 Ring attention</option>
+          </select>
+        </div>
+        <div class="ctl">
+          <label for="hw">GPU 型号</label>
+          <select id="hw">
+            <option value="989">H100 / H200（989 TFLOPS BF16）</option>
+            <option value="2250">B200（2250 TFLOPS BF16）</option>
+          </select>
+        </div>
+        <div class="ctl check">
+          <label><input id="cfg" type="checkbox" checked /> 开启 CFG（每步 2 次前向）</label>
+        </div>
+        <div class="ctl check">
+          <label><input id="cfgPar" type="checkbox" checked /> CFG parallel（两次前向分给两组卡）</label>
+        </div>
+
+        <details class="adv">
+          <summary>校准参数（用你的实测替换默认值）</summary>
+          <div class="controls">
+            <div class="ctl">
+              <label for="mfu">DiT MFU <output id="mfuO"></output></label>
+              <input id="mfu" type="range" min="10" max="80" step="1" value="45" />
+            </div>
+            <div class="ctl">
+              <label for="nvl">机内带宽（NVLink，有效） <output id="nvlO"></output></label>
+              <input id="nvl" type="range" min="50" max="900" step="10" value="300" />
+            </div>
+            <div class="ctl">
+              <label for="ib">跨机带宽（每卡，有效） <output id="ibO"></output></label>
+              <input id="ib" type="range" min="5" max="100" step="5" value="40" />
+            </div>
+            <div class="ctl">
+              <label for="vae">VAE decode（ms / 帧 @480p） <output id="vaeO"></output></label>
+              <input id="vae" type="range" min="5" max="200" step="5" value="60" />
+            </div>
+            <div class="ctl">
+              <label for="te">Text encoder（ms） <output id="teO"></output></label>
+              <input id="te" type="range" min="0" max="500" step="10" value="80" />
+            </div>
+            <div class="ctl check">
+              <label><input id="vaePar" type="checkbox" /> VAE 也按 GPU 数并行</label>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <div class="stats" id="stats"></div>
+      <div id="warn"></div>
+
+      <h2>当前配置的估算时间分解</h2>
+      <div class="legend" id="legend"></div>
+      <div class="rows" id="curRow"></div>
+
+      <h2>只改 GPU 数：扩展曲线</h2>
+      <p class="hint">
+        每一行是同一配置在不同 GPU 数下的端到端时间（同一刻度），右侧是总时间和扩展效率（1 卡时间 ÷ (G × G 卡时间)）。虚线以下的配置，sequence
+        parallel 组跨出了一台 8 卡机器。
+      </p>
+      <div class="rows" id="gpuRows"></div>
+      <div class="axis">
+        <span></span>
+        <div class="ticks" id="gpuTicks"></div>
+        <span></span>
+      </div>
+
+      <h2>只改步数：各部分的占比怎么变</h2>
+      <p class="hint">
+        每一行是同一配置在不同步数下的估算时间占比（100% 堆叠），右侧是总时间。仅改变调用次数，不表示这些设置有相同画质，也不等同于少步蒸馏。
+      </p>
+      <div class="rows" id="stepRows"></div>
+      <div class="axis">
+        <span></span>
+        <div class="ticks"><span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span></div>
+        <span></span>
+      </div>
+
+      <details class="tbl">
+        <summary>数据表</summary>
+        <div class="tblwrap"><table id="table"></table></div>
+      </details>
+
+      <details class="assume">
+        <summary>模型假设</summary>
+        <ul>
+          <li>
+            token 数 = 潜空间帧数 × (H / s / 2) × (W / s / 2)，帧数 = 时长 × 所选 fps + 1，潜空间帧数 = 1 + (帧数 − 1) /
+            4。时长按首尾帧时间间隔估算；s 为 VAE 空间压缩倍数（Wan2.1 为 8，Wan2.2 5B 为 16），patch 为 1×2×2。
+          </li>
+          <li>
+            每次前向 FLOPs ≈ 2·L·n·(4d² + 2d·d_ff)（self-attention 投影与 FFN）+ 4·L·n²·d·k（self-attention，k 为保留比例），与正文公式一致。忽略
+            cross-attention、modulation、norm 等部分；不是完整模型 FLOPs。
+          </li>
+          <li>
+            DiT 计算时间 = FLOPs / (SP 并行度 × 峰值 × MFU)。各类计算共用固定 MFU，没有建模小块效率下降或各 kernel
+            的吞吐差异；这是简化趋势模型，不能保证预测误差的方向。
+          </li>
+          <li>稀疏计算按保留比例理想缩放，不计模式选择、索引与不规则访存；通信仍传完整 K/V。没有计算画质或训练成本。</li>
+          <li>CFG parallel：开 CFG 且 GPU 数 ≥ 2 时，两次前向分给两组卡，每组的 SP 并行度为 G / 2，合并结果的通信忽略不计。</li>
+          <li>每台机器 8 张卡。SP 组不超过 8 张卡时走机内带宽，否则受跨机带宽限制。</li>
+          <li>
+            Ulysses：每层按 Q、K、V、O 四份张量统计，每卡发送 8·(n/G)·d·(u−1)/u 字节，不与计算重叠；QKV 可融合通信，并行度 u 必须整除 head
+            数。带宽使用与发送量对应的有效口径。
+          </li>
+          <li>Ring：每层 R−1 步，每步传 4·(n/G)·d 字节的 K/V，与本步的块 attention 重叠，只计算超出计算时间的部分。</li>
+          <li>USP：Ulysses 并行度取不超过 8、且同时整除 head 数和 SP 并行度的最大值，其余用 Ring。</li>
+          <li>VAE 时间按像素数线性缩放；默认不随 GPU 数并行。打开 VAE 并行时按理想线性加速估算。text encoder 为固定值。</li>
+          <li>
+            忽略 collective 启动、序列 padding、权重加载、输出搬运和视频编码。Ulysses 的可行性提示只检查 head 整除，不检查显存、模型支持的生成配置或
+            kernel 限制。
+          </li>
+          <li>预设的层数、隐藏维度、head 数来自公开配置，默认的 MFU、带宽、VAE 数值是占位，未经实测校准。</li>
+        </ul>
+      </details>
+    </div>
+    <div id="tip" role="tooltip"></div>
+
+    <script>
+      const MODELS = {
+        wan13: { name: "Wan2.1 1.3B", L: 30, d: 1536, dff: 8960, heads: 12, s: 8 },
+        wan5: { name: "Wan2.2 TI2V 5B", L: 30, d: 3072, dff: 14336, heads: 24, s: 16 },
+        wan14: { name: "Wan2.1 14B", L: 40, d: 5120, dff: 13824, heads: 40, s: 8 },
+      };
+      const RES = { 480: [832, 480], 720: [1280, 704] };
+      const GPUS_PER_NODE = 8;
+      const GPU_STEPS = [1, 2, 4, 8, 16, 32];
+      const SERIES = [
+        { key: "linear", label: "DiT 线性层", color: "var(--series-1)" },
+        { key: "attn", label: "DiT attention", color: "var(--series-2)" },
+        { key: "comm", label: "SP 通信（未被重叠）", color: "var(--series-3)" },
+        { key: "vae", label: "VAE decode", color: "var(--series-4)" },
+        { key: "te", label: "Text encoder", color: "var(--series-5)" },
+      ];
+      const STEP_ROWS = [50, 25, 8, 4, 1];
+
+      const $ = (id) => document.getElementById(id);
+      const val = (id) => Number($(id).value);
+
+      function params() {
+        return {
+          m: MODELS[$("model").value],
+          res: RES[$("res").value],
+          dur: val("dur"),
+          fps: val("fps"),
+          steps: val("steps"),
+          keep: val("keep") / 100,
+          gpus: GPU_STEPS[val("gpus")],
+          sp: $("sp").value,
+          peak: val("hw") * 1e12,
+          cfg: $("cfg").checked ? 2 : 1,
+          cfgPar: $("cfgPar").checked,
+          mfu: val("mfu") / 100,
+          nvl: val("nvl") * 1e9,
+          ib: val("ib") * 1e9,
+          vaeMs: val("vae"),
+          teMs: val("te"),
+          vaePar: $("vaePar").checked,
+        };
+      }
+
+      // 把 g 张卡的 SP 组拆成 Ulysses 并行度 u 和 Ring 并行度 R（u × R = g）
+      function spPlan(p, g) {
+        const H = p.m.heads;
+        if (g === 1) return { u: 1, R: 1, ok: true };
+        if (p.sp === "ulysses") return { u: g, R: 1, ok: H % g === 0, why: `Ulysses 并行度 ${g} 不能整除 head 数 ${H}` };
+        if (p.sp === "ring") return { u: 1, R: g, ok: true };
+        let u = 1;
+        for (let c = 2; c <= Math.min(g, GPUS_PER_NODE); c++) if (g % c === 0 && H % c === 0) u = c;
+        return { u, R: g / u, ok: true };
+      }
+
+      function compute(p, steps, G) {
+        const { m, res } = p;
+        const frames = p.dur * p.fps + 1;
+        const latentT = 1 + Math.floor((frames - 1) / 4);
+        const n = latentT * Math.floor(res[0] / m.s / 2) * Math.floor(res[1] / m.s / 2);
+
+        // CFG parallel：两次前向分给两组卡，每组各自做 SP
+        const cfgSplit = p.cfg === 2 && p.cfgPar && G >= 2;
+        const g = cfgSplit ? G / 2 : G;
+        const fwd = steps * (cfgSplit ? 1 : p.cfg);
+        const plan = spPlan(p, g);
+
+        const F = p.peak * p.mfu;
+        const linearFlops = 2 * m.L * n * (4 * m.d ** 2 + 2 * m.d * m.dff);
+        const linear = (fwd * linearFlops) / (g * F);
+        const attn = (fwd * 4 * m.L * n * n * m.d * p.keep) / (g * F);
+
+        // 每层每卡的通信时间
+        const crossNode = g > GPUS_PER_NODE;
+        let commLayer = 0;
+        if (plan.u > 1) {
+          // Ulysses：统计 Q/K/V/O 的发送量，不假定 collective 调用次数。USP 的 Ulysses 组在机内。
+          const B = p.sp === "ulysses" && crossNode ? p.ib : p.nvl;
+          commLayer += (8 * (n / g) * m.d * (plan.u - 1)) / plan.u / B;
+        }
+        if (plan.R > 1) {
+          // Ring：每步传一块 K/V，与该块的 attention 重叠，只有超出的部分暴露出来
+          const B = crossNode ? p.ib : p.nvl;
+          const xfer = (4 * (n / g) * m.d) / B;
+          const blk = (4 * (n / plan.R) ** 2 * (m.d / plan.u) * p.keep) / F;
+          commLayer += (plan.R - 1) * Math.max(0, xfer - blk);
+        }
+        const comm = fwd * m.L * commLayer;
+
+        const pixScale = (res[0] * res[1]) / (832 * 480);
+        const vae = (frames * p.vaeMs * pixScale) / 1000 / (p.vaePar ? G : 1);
+        const te = p.teMs / 1000;
+        const total = linear + attn + comm + vae + te;
+        const parts = [];
+        if (cfgSplit) parts.push("CFG×2");
+        if (plan.u > 1) parts.push(`Ulysses×${plan.u}`);
+        if (plan.R > 1) parts.push(`Ring×${plan.R}`);
+        return {
+          n,
+          frames,
+          linear,
+          attn,
+          comm,
+          vae,
+          te,
+          total,
+          ok: plan.ok,
+          why: plan.why,
+          desc: parts.join(" · ") || "单卡",
+          crossNode,
+          attnShare: (4 * m.L * n * n * m.d * p.keep) / (linearFlops + 4 * m.L * n * n * m.d * p.keep),
+        };
+      }
+
+      const fmtS = (s) => (s >= 100 ? s.toFixed(0) : s >= 10 ? s.toFixed(1) : s.toFixed(2)) + " s";
+      const fmtPct = (x) => (x * 100).toFixed(x < 0.1 ? 1 : 0) + "%";
+
+      function segs(r, rowLabel) {
+        return SERIES.filter((s) => r[s.key] > 0)
+          .map((s) => {
+            const share = r[s.key] / r.total;
+            return `<div class="seg" style="flex:${share} 1 0;background:${s.color}" data-tip="${rowLabel} · ${s.label}：${fmtS(r[s.key])}（${fmtPct(
+              share
+            )}）"></div>`;
+          })
+          .join("");
+      }
+      const naRow = (lab, cls, why) => `<div class="lab ${cls}">${lab}</div><div class="na">不可行：${why}</div><div class="tot">—</div>`;
+
+      function render() {
+        const p = params();
+        $("durO").textContent = p.dur + " s";
+        $("stepsO").textContent = p.steps;
+        $("keepO").textContent = Math.round(p.keep * 100) + "%";
+        $("gpusO").textContent = p.gpus;
+        $("mfuO").textContent = Math.round(p.mfu * 100) + "%";
+        $("nvlO").textContent = p.nvl / 1e9 + " GB/s";
+        $("ibO").textContent = p.ib / 1e9 + " GB/s";
+        $("vaeO").textContent = p.vaeMs + " ms";
+        $("teO").textContent = p.teMs + " ms";
+
+        const r = compute(p, p.steps, p.gpus);
+        const r1 = compute(p, p.steps, 1);
+        const rtf = r.total / p.dur;
+        const eff = r1.total / (p.gpus * r.total);
+        $("stats").innerHTML = [
+          ["估算总延迟", r.ok ? fmtS(r.total) : "—", r.ok ? `耗时 / 视频时长 ${rtf.toFixed(rtf >= 10 ? 0 : 1)}×` : "head 整除条件不满足"],
+          ["token 数", r.n.toLocaleString(), `${r.frames} 帧 · ${p.fps} fps`],
+          ["attention FLOPs 占比", fmtPct(r.attnShare), "仅计投影、FFN 与 self-attention"],
+          ["DiT 以外的占比", r.ok ? fmtPct((r.vae + r.te) / r.total) : "—", "VAE + text encoder"],
+          ["并行方式", r.desc, r.crossNode ? "SP 组跨机" : p.gpus > GPUS_PER_NODE ? "SP 组机内 · CFG 跨机" : p.gpus > 1 ? "机内" : "—"],
+          ["扩展效率", r.ok ? fmtPct(eff) : "—", `${p.gpus} 卡 vs 1 卡`],
+        ]
+          .map(([k, v, s]) => `<div class="stat"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${s}</div></div>`)
+          .join("");
+        $("warn").innerHTML = r.ok ? "" : `<div class="warn">${r.why}，换成 USP 或 Ring 试试。</div>`;
+
+        const curLab = `${p.gpus} 卡 · ${p.steps} 步`;
+        $("curRow").innerHTML = r.ok
+          ? `<div class="lab cur">${p.steps} 步</div><div class="bar">${segs(r, curLab)}</div><div class="tot">${fmtS(r.total)}</div>`
+          : naRow(`${p.steps} 步`, "cur", r.why);
+
+        // 扩展曲线：同一刻度的绝对时间
+        const gRows = GPU_STEPS.map((G) => [G, compute(p, p.steps, G)]);
+        const maxT = Math.max(...gRows.filter(([, x]) => x.ok).map(([, x]) => x.total));
+        $("gpuRows").innerHTML = gRows
+          .map(([G, x]) => {
+            const cls = (G === p.gpus ? "cur " : "") + (x.crossNode && !compute(p, p.steps, G / 2).crossNode ? "cliff" : "");
+            if (!x.ok) return naRow(`${G} 卡`, cls, x.why);
+            const e = r1.total / (G * x.total);
+            return `<div class="lab ${cls}">${G} 卡</div><div class="abs"><div class="bar" style="width:${(x.total / maxT) * 100}%">${segs(
+              x,
+              `${G} 卡（${x.desc}）`
+            )}</div></div><div class="tot">${fmtS(x.total)} · ${fmtPct(e)}</div>`;
+          })
+          .join("");
+        $("gpuTicks").innerHTML = [0, 0.25, 0.5, 0.75, 1].map((f) => `<span>${fmtS(maxT * f)}</span>`).join("");
+
+        const rows = STEP_ROWS.map((s) => [s, compute(p, s, p.gpus)]);
+        $("stepRows").innerHTML = rows
+          .map(([s, rr]) =>
+            rr.ok
+              ? `<div class="lab ${s === p.steps ? "cur" : ""}">${s} 步</div><div class="bar">${segs(rr, s + " 步")}</div><div class="tot">${fmtS(
+                  rr.total
+                )}</div>`
+              : naRow(`${s} 步`, "", rr.why)
+          )
+          .join("");
+
+        const tr = (lab, x) =>
+          `<tr><td>${lab}</td>${SERIES.map((s) => `<td>${x.ok ? fmtS(x[s.key]) : "—"}</td>`).join("")}<td>${x.ok ? fmtS(x.total) : "—"}</td></tr>`;
+        $("table").innerHTML =
+          `<tr><th>配置</th>${SERIES.map((s) => `<th>${s.label}</th>`).join("")}<th>总计</th></tr>` +
+          tr(`当前（${p.gpus} 卡 · ${p.steps} 步）`, r) +
+          gRows.map(([G, x]) => tr(`${G} 卡（${x.desc}）`, x)).join("") +
+          rows.map(([s, x]) => tr(`${s} 步`, x)).join("");
+        resize();
+      }
+
+      $("legend").innerHTML = SERIES.map((s) => `<span><i style="background:${s.color}"></i>${s.label}</span>`).join("");
+      document.querySelectorAll("input,select").forEach((el) => el.addEventListener("input", render));
+
+      // tooltip
+      const tip = $("tip");
+      document.addEventListener("mousemove", (e) => {
+        const t = e.target.closest && e.target.closest("[data-tip]");
+        if (!t) {
+          tip.style.opacity = 0;
+          return;
+        }
+        tip.textContent = t.dataset.tip;
+        tip.style.opacity = 1;
+        const w = tip.offsetWidth;
+        const x = Math.min(e.clientX + 12, window.innerWidth - w - 8);
+        tip.style.left = Math.max(8, x) + "px";
+        tip.style.top = e.clientY + 14 + "px";
+      });
+
+      // 嵌在博客的 iframe 里时：高度跟随内容，深浅色跟随主站的切换
+      function resize() {
+        try {
+          if (window.frameElement) window.frameElement.style.height = document.body.scrollHeight + "px";
+        } catch (e) {}
+      }
+      function syncTheme() {
+        try {
+          const t = window.parent.document.documentElement.getAttribute("data-theme");
+          if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t);
+          else document.documentElement.removeAttribute("data-theme");
+        } catch (e) {}
+      }
+      try {
+        if (window.parent !== window) {
+          new MutationObserver(syncTheme).observe(window.parent.document.documentElement, {
+            attributes: true,
+            attributeFilter: ["data-theme"],
+          });
+        }
+      } catch (e) {}
+      syncTheme();
+      new ResizeObserver(resize).observe(document.body);
+      render();
+    </script>
+  </body>
+</html>
