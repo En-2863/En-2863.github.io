@@ -1,0 +1,7 @@
+model,height,width,frames,vae_tiling,stage,resident_gb,peak_alloc_gb,peak_reserved_gb,oom
+/projects/bidr/wzhang13/models/Wan2.1-T2V-1.3B-Diffusers,480,832,81,False,text,13.759966373443604,13.975027561187744,14.259765625,False
+/projects/bidr/wzhang13/models/Wan2.1-T2V-1.3B-Diffusers,480,832,81,False,dit,13.759966373443604,15.297056674957275,16.390625,False
+/projects/bidr/wzhang13/models/Wan2.1-T2V-1.3B-Diffusers,480,832,81,False,vae,13.759966373443604,21.980238914489746,24.302734375,False
+/projects/bidr/wzhang13/models/Wan2.1-T2V-1.3B-Diffusers,480,832,81,True,text,13.759966373443604,13.97483491897583,14.259765625,False
+/projects/bidr/wzhang13/models/Wan2.1-T2V-1.3B-Diffusers,480,832,81,True,dit,13.759966373443604,15.297064304351807,16.390625,False
+/projects/bidr/wzhang13/models/Wan2.1-T2V-1.3B-Diffusers,480,832,81,True,vae,13.759966373443604,15.570246696472168,16.783203125,False

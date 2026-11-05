@@ -1,0 +1,7 @@
+<figure class="infra-figure infra-bench">
+  <div class="infra-figure-heading"><span>端到端时间分解</span><span class="infra-figure-kind">实测 · NVIDIA A100-SXM4-40GB</span></div>
+  <div class="bench-legend"><span><i class="seg-text"></i>文本编码</span><span><i class="seg-dit"></i>DiT 去噪</span><span><i class="seg-vae"></i>VAE 解码</span><span><i class="seg-other"></i>其他</span></div>
+  <div class="bench-row"><span class="bench-label">50 步 · CFG</span><div class="bench-stack"><span class="bench-seg seg-text" style="flex-grow: 0.0006" title="文本编码：0.12 s"></span><span class="bench-seg seg-dit" style="flex-grow: 0.9662" title="DiT 去噪：177.64 s">97%</span><span class="bench-seg seg-vae" style="flex-grow: 0.0298" title="VAE 解码：5.48 s"></span><span class="bench-seg seg-other" style="flex-grow: 0.0033" title="其他：0.61 s"></span></div><strong>183.8 s</strong></div>
+  <div class="bench-row"><span class="bench-label">4 步 · 无 CFG</span><div class="bench-stack"><span class="bench-seg seg-text" style="flex-grow: 0.0047" title="文本编码：0.06 s"></span><span class="bench-seg seg-dit" style="flex-grow: 0.5564" title="DiT 去噪：7.11 s">56%</span><span class="bench-seg seg-vae" style="flex-grow: 0.4286" title="VAE 解码：5.48 s">43%</span><span class="bench-seg seg-other" style="flex-grow: 0.0102" title="其他：0.13 s"></span></div><strong>12.8 s</strong></div>
+  <figcaption>各阶段占端到端时间的比例，右侧为总时长。少步配置使用同一个未蒸馏的 checkpoint，只用来测时间，画质不可用。NVIDIA A100-SXM4-40GB × 1 · Wan2.1-T2V-1.3B-Diffusers · 832×480，81 帧 · DiT bf16 / VAE float32 · diffusers 0.36.0；3 次重复取中位数。</figcaption>
+</figure>

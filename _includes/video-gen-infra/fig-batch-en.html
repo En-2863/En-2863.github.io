@@ -1,0 +1,8 @@
+<figure class="infra-figure infra-bench">
+  <div class="infra-figure-heading"><span>DiT throughput under batching</span><span class="infra-figure-kind">Measured · NVIDIA A100-SXM4-40GB</span></div>
+  <div class="bench-legend"><span><i class="bench-swatch-bar"></i>Measured</span><span><i class="bench-swatch-ideal"></i>Linear scaling</span></div>
+  <div class="bench-row" title="DiT 3556 ms per step, peak 15.3 GB"><span class="bench-label">batch 1</span><div class="bench-track"><span class="bench-bar" style="width: 25.0%"></span><span class="bench-ideal" style="left: 25.0%"></span></div><strong>×1.00</strong></div>
+  <div class="bench-row" title="DiT 7037 ms per step, peak 16.8 GB"><span class="bench-label">batch 2</span><div class="bench-track"><span class="bench-bar" style="width: 25.3%"></span><span class="bench-ideal" style="left: 50.0%"></span></div><strong>×1.01</strong></div>
+  <div class="bench-row" title="DiT 14063 ms per step, peak 19.9 GB"><span class="bench-label">batch 4</span><div class="bench-track"><span class="bench-bar" style="width: 25.3%"></span><span class="bench-ideal" style="left: 100.0%"></span></div><strong>×1.01</strong></div>
+  <figcaption>Video throughput relative to batch 1, DiT only (the VAE does not run). The dashed line marks throughput that grows linearly with batch size. NVIDIA A100-SXM4-40GB × 1 · Wan2.1-T2V-1.3B-Diffusers · 832×480, 81 frames · DiT bf16 / VAE float32 · diffusers 0.36.0; 8 steps, CFG 5.0 (2 forward passes per step); median of 3 runs.</figcaption>
+</figure>

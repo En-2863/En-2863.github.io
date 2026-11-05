@@ -1,0 +1,8 @@
+<figure class="infra-figure infra-bench">
+  <div class="infra-figure-heading"><span>合批后的 DiT 吞吐</span><span class="infra-figure-kind">实测 · NVIDIA A100-SXM4-40GB</span></div>
+  <div class="bench-legend"><span><i class="bench-swatch-bar"></i>实测吞吐</span><span><i class="bench-swatch-ideal"></i>线性扩展</span></div>
+  <div class="bench-row" title="每步 DiT 3556 ms，峰值 15.3 GB"><span class="bench-label">batch 1</span><div class="bench-track"><span class="bench-bar" style="width: 25.0%"></span><span class="bench-ideal" style="left: 25.0%"></span></div><strong>×1.00</strong></div>
+  <div class="bench-row" title="每步 DiT 7037 ms，峰值 16.8 GB"><span class="bench-label">batch 2</span><div class="bench-track"><span class="bench-bar" style="width: 25.3%"></span><span class="bench-ideal" style="left: 50.0%"></span></div><strong>×1.01</strong></div>
+  <div class="bench-row" title="每步 DiT 14063 ms，峰值 19.9 GB"><span class="bench-label">batch 4</span><div class="bench-track"><span class="bench-bar" style="width: 25.3%"></span><span class="bench-ideal" style="left: 100.0%"></span></div><strong>×1.01</strong></div>
+  <figcaption>相对 batch 1 的视频吞吐，只计 DiT，VAE 未运行；虚线为吞吐随 batch 线性增长的情形。NVIDIA A100-SXM4-40GB × 1 · Wan2.1-T2V-1.3B-Diffusers · 832×480，81 帧 · DiT bf16 / VAE float32 · diffusers 0.36.0；8 步，CFG 5.0（每步 2 次前向）；3 次重复取中位数。</figcaption>
+</figure>

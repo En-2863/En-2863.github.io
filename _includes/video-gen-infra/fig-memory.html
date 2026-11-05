@@ -1,0 +1,8 @@
+<figure class="infra-figure infra-bench">
+  <div class="infra-figure-heading"><span>各阶段的显存峰值</span><span class="infra-figure-kind">实测 · NVIDIA A100-SXM4-40GB</span></div>
+  <div class="bench-row"><span class="bench-label">文本编码</span><div class="bench-track"><span class="bench-bar" style="width: 63.6%"></span></div><strong>14.0 GB</strong></div>
+  <div class="bench-row"><span class="bench-label">DiT 去噪</span><div class="bench-track"><span class="bench-bar" style="width: 69.6%"></span></div><strong>15.3 GB</strong></div>
+  <div class="bench-row"><span class="bench-label">VAE 解码</span><div class="bench-track"><span class="bench-bar" style="width: 100.0%"></span></div><strong>22.0 GB</strong></div>
+  <div class="bench-row"><span class="bench-label">VAE 解码（tiling）</span><div class="bench-track"><span class="bench-bar" style="width: 70.8%"></span></div><strong>15.6 GB</strong></div>
+  <figcaption>每个阶段内 torch.cuda.max_memory_allocated() 的峰值，包含常驻的模型权重（13.8 GB）。NVIDIA A100-SXM4-40GB × 1 · Wan2.1-T2V-1.3B-Diffusers · 832×480，81 帧 · DiT bf16 / VAE float32 · diffusers 0.36.0。</figcaption>
+</figure>

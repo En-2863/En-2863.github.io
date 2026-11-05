@@ -1,0 +1,6 @@
+<figure class="infra-figure infra-bench">
+  <div class="infra-figure-heading"><span>单步 DiT 的 GPU 时间构成</span><span class="infra-figure-kind">实测 · NVIDIA A100-SXM4-40GB</span></div>
+  <div class="bench-legend"><span><i class="seg-gemm"></i>GEMM</span><span><i class="seg-attn"></i>Attention</span><span><i class="seg-other"></i>其他</span></div>
+  <div class="bench-row bench-row-wide"><div class="bench-stack"><span class="bench-seg seg-gemm" style="flex-grow: 0.1861" title="GEMM：659 ms">19%</span><span class="bench-seg seg-attn" style="flex-grow: 0.5217" title="Attention：1847 ms">52%</span><span class="bench-seg seg-other" style="flex-grow: 0.2922" title="其他：1034 ms">29%</span></div></div>
+  <figcaption>一次 2 步、无 CFG 的 DiT 推理中 GPU kernel 时间的占比；kernel 按名称归类，归类依据见 results/profile_top.csv。NVIDIA A100-SXM4-40GB × 1 · Wan2.1-T2V-1.3B-Diffusers · 832×480，81 帧 · DiT bf16 / VAE float32 · diffusers 0.36.0。</figcaption>
+</figure>

@@ -1,0 +1,4 @@
+model,height,width,frames,steps,category,ms,share
+/projects/bidr/wzhang13/models/Wan2.1-T2V-1.3B-Diffusers,480,832,81,2,gemm,1402.7396329999995,0.19363114388328312
+/projects/bidr/wzhang13/models/Wan2.1-T2V-1.3B-Diffusers,480,832,81,2,attention,3676.980955999998,0.5075624954180843
+/projects/bidr/wzhang13/models/Wan2.1-T2V-1.3B-Diffusers,480,832,81,2,other,2164.669981999997,0.2988063606986326

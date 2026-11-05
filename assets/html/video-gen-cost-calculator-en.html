@@ -1,0 +1,744 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Video Generation Cost Calculator</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --surface-1: transparent;
+        --surface-2: rgba(0, 0, 0, 0.04);
+        --border: rgba(0, 0, 0, 0.12);
+        --grid: rgba(0, 0, 0, 0.08);
+        --text-primary: #0b0b0b;
+        --text-secondary: #52514e;
+        --text-muted: #7a7974;
+        --accent: #2a78d6;
+        --gap: #fcfcfb;
+        --series-1: #2a78d6;
+        --series-2: #eb6834;
+        --series-3: #1baf7a;
+        --series-4: #eda100;
+        --series-5: #e87ba4;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:where(:not([data-theme="light"])) {
+          color-scheme: dark;
+          --surface-2: rgba(255, 255, 255, 0.05);
+          --border: rgba(255, 255, 255, 0.14);
+          --grid: rgba(255, 255, 255, 0.08);
+          --text-primary: #f0efec;
+          --text-secondary: #c3c2b7;
+          --text-muted: #8f8e86;
+          --accent: #3987e5;
+          --gap: #1a1a19;
+          --series-1: #3987e5;
+          --series-2: #d95926;
+          --series-3: #199e70;
+          --series-4: #c98500;
+          --series-5: #d55181;
+        }
+      }
+      :root[data-theme="dark"] {
+        color-scheme: dark;
+        --surface-2: rgba(255, 255, 255, 0.05);
+        --border: rgba(255, 255, 255, 0.14);
+        --grid: rgba(255, 255, 255, 0.08);
+        --text-primary: #f0efec;
+        --text-secondary: #c3c2b7;
+        --text-muted: #8f8e86;
+        --accent: #3987e5;
+        --gap: #1a1a19;
+        --series-1: #3987e5;
+        --series-2: #d95926;
+        --series-3: #199e70;
+        --series-4: #c98500;
+        --series-5: #d55181;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        background: var(--surface-1);
+        color: var(--text-primary);
+        font:
+          14px/1.5 -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          "PingFang SC",
+          "Hiragino Sans GB",
+          "Microsoft YaHei",
+          sans-serif;
+      }
+      .wrap {
+        padding: 4px 16px 16px;
+        max-width: 960px;
+        margin: 0 auto;
+      }
+      h2 {
+        font-size: 15px;
+        margin: 20px 0 8px;
+        font-weight: 600;
+      }
+      .hint {
+        color: var(--text-secondary);
+        font-size: 13px;
+        margin: 0 0 8px;
+      }
+
+      /* controls */
+      .controls {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 10px 20px;
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--surface-2);
+      }
+      .ctl label {
+        display: flex;
+        justify-content: space-between;
+        font-size: 13px;
+        color: var(--text-secondary);
+      }
+      .ctl output {
+        color: var(--text-primary);
+        font-variant-numeric: tabular-nums;
+        font-weight: 600;
+      }
+      .ctl input[type="range"],
+      .ctl select {
+        width: 100%;
+        margin: 4px 0 0;
+        accent-color: var(--accent);
+      }
+      .ctl select {
+        padding: 3px 4px;
+        background: transparent;
+        color: var(--text-primary);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        font: inherit;
+      }
+      .ctl.check label {
+        justify-content: flex-start;
+        gap: 6px;
+        align-items: center;
+        margin-top: 18px;
+      }
+      details.adv {
+        grid-column: 1 / -1;
+      }
+      details.adv summary {
+        cursor: pointer;
+        color: var(--text-secondary);
+        font-size: 13px;
+      }
+      details.adv .controls {
+        margin-top: 8px;
+        background: transparent;
+      }
+
+      /* stat tiles */
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+        gap: 10px;
+        margin: 14px 0 4px;
+      }
+      .stat {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 8px 12px;
+      }
+      .stat .k {
+        font-size: 12px;
+        color: var(--text-secondary);
+      }
+      .stat .v {
+        font-size: 22px;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+      }
+      .stat .s {
+        font-size: 12px;
+        color: var(--text-muted);
+      }
+
+      /* legend */
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px 16px;
+        font-size: 13px;
+        color: var(--text-secondary);
+        margin: 4px 0 8px;
+      }
+      .legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .legend i {
+        width: 10px;
+        height: 10px;
+        border-radius: 2px;
+        display: inline-block;
+      }
+
+      /* bars */
+      .rows {
+        display: grid;
+        grid-template-columns: 76px 1fr 108px;
+        gap: 6px 10px;
+        align-items: center;
+      }
+      .rows .lab {
+        font-size: 13px;
+        color: var(--text-secondary);
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+      .rows .lab.cur {
+        color: var(--text-primary);
+        font-weight: 600;
+      }
+      .rows .tot {
+        font-size: 13px;
+        color: var(--text-secondary);
+        font-variant-numeric: tabular-nums;
+      }
+      .bar {
+        display: flex;
+        gap: 2px;
+        height: 22px;
+        position: relative;
+        background-image: linear-gradient(to right, var(--grid) 1px, transparent 1px);
+        background-size: 25% 100%;
+      }
+      .seg {
+        height: 100%;
+        min-width: 0;
+        cursor: default;
+      }
+      .seg:first-child {
+        border-radius: 4px 0 0 4px;
+      }
+      .seg:last-child {
+        border-radius: 0 4px 4px 0;
+      }
+      .seg:only-child {
+        border-radius: 4px;
+      }
+      .seg:hover {
+        filter: brightness(1.08);
+        outline: 2px solid var(--text-primary);
+        outline-offset: -2px;
+      }
+      .axis {
+        display: grid;
+        grid-template-columns: 76px 1fr 108px;
+        gap: 10px;
+        font-size: 11px;
+        color: var(--text-muted);
+      }
+      .axis .ticks {
+        display: flex;
+        justify-content: space-between;
+      }
+
+      #tip {
+        position: fixed;
+        pointer-events: none;
+        background: var(--text-primary);
+        color: var(--gap);
+        font-size: 12px;
+        padding: 6px 8px;
+        border-radius: 6px;
+        opacity: 0;
+        transition: opacity 0.08s;
+        white-space: nowrap;
+        z-index: 10;
+      }
+
+      details.tbl summary,
+      details.assume summary {
+        cursor: pointer;
+        color: var(--text-secondary);
+        font-size: 13px;
+        margin-top: 14px;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        font-size: 12px;
+        margin-top: 6px;
+        font-variant-numeric: tabular-nums;
+      }
+      th,
+      td {
+        border-bottom: 1px solid var(--grid);
+        padding: 4px 6px;
+        text-align: right;
+      }
+      th:first-child,
+      td:first-child {
+        text-align: left;
+      }
+      th {
+        color: var(--text-secondary);
+        font-weight: 600;
+      }
+      .assume ul {
+        font-size: 12px;
+        color: var(--text-secondary);
+        padding-left: 18px;
+        margin: 6px 0;
+      }
+      .tblwrap {
+        overflow-x: auto;
+      }
+      .rows .na {
+        font-size: 12px;
+        color: var(--text-muted);
+        height: 22px;
+        display: flex;
+        align-items: center;
+      }
+      .abs {
+        height: 22px;
+        background-image: linear-gradient(to right, var(--grid) 1px, transparent 1px);
+        background-size: 25% 100%;
+      }
+      .abs .bar {
+        background: none;
+      }
+      .rows .lab.cliff {
+        border-top: 1px dashed var(--text-muted);
+        padding-top: 4px;
+      }
+      .warn {
+        border: 1px solid var(--border);
+        border-left: 4px solid var(--series-4);
+        border-radius: 6px;
+        padding: 6px 10px;
+        font-size: 13px;
+        color: var(--text-secondary);
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <p class="hint">An analytical estimate, not a measured benchmark. Use it to compare compute and parallelism trends; the defaults are not calibrated on hardware, and peak memory and output quality are not checked.</p>
+      <div class="controls" id="controls">
+        <div class="ctl">
+          <label for="model">Model</label>
+          <select id="model">
+            <option value="wan13">Wan2.1 1.3B</option>
+            <option value="wan5" selected>Wan2.2 TI2V 5B</option>
+            <option value="wan14">Wan2.1 14B</option>
+          </select>
+        </div>
+        <div class="ctl">
+          <label for="res">Resolution</label>
+          <select id="res">
+            <option value="480">480p (832×480)</option>
+            <option value="720" selected>720p (1280×704)</option>
+          </select>
+        </div>
+        <div class="ctl">
+          <label for="dur">Video length <output id="durO"></output></label>
+          <input id="dur" type="range" min="1" max="60" step="1" value="5" />
+        </div>
+        <div class="ctl">
+          <label for="fps">Frame rate (sets frame count)</label>
+          <select id="fps">
+            <option value="16" selected>16 fps (common baseline)</option>
+            <option value="24">24 fps (Wan2.2 5B default)</option>
+          </select>
+        </div>
+        <div class="ctl">
+          <label for="steps">Denoising steps <output id="stepsO"></output></label>
+          <input id="steps" type="range" min="1" max="50" step="1" value="50" />
+        </div>
+        <div class="ctl">
+          <label for="keep">Attention kept <output id="keepO"></output></label>
+          <input id="keep" type="range" min="5" max="100" step="5" value="100" />
+        </div>
+        <div class="ctl">
+          <label for="gpus">GPUs <output id="gpusO"></output></label>
+          <input id="gpus" type="range" min="0" max="5" step="1" value="0" />
+        </div>
+        <div class="ctl">
+          <label for="sp">Sequence parallelism</label>
+          <select id="sp">
+            <option value="usp" selected>USP (Ulysses in-node + Ring)</option>
+            <option value="ulysses">Ulysses only</option>
+            <option value="ring">Ring attention only</option>
+          </select>
+        </div>
+        <div class="ctl">
+          <label for="hw">GPU</label>
+          <select id="hw">
+            <option value="989">H100 / H200 (989 TFLOPS BF16)</option>
+            <option value="2250">B200 (2250 TFLOPS BF16)</option>
+          </select>
+        </div>
+        <div class="ctl check">
+          <label><input id="cfg" type="checkbox" checked /> CFG on (2 forward passes per step)</label>
+        </div>
+        <div class="ctl check">
+          <label><input id="cfgPar" type="checkbox" checked /> CFG parallel (the two passes run on two GPU groups)</label>
+        </div>
+
+        <details class="adv">
+          <summary>Calibration (replace the defaults with your measurements)</summary>
+          <div class="controls">
+            <div class="ctl">
+              <label for="mfu">DiT MFU <output id="mfuO"></output></label>
+              <input id="mfu" type="range" min="10" max="80" step="1" value="45" />
+            </div>
+            <div class="ctl">
+              <label for="nvl">Intra-node bandwidth (NVLink, effective) <output id="nvlO"></output></label>
+              <input id="nvl" type="range" min="50" max="900" step="10" value="300" />
+            </div>
+            <div class="ctl">
+              <label for="ib">Inter-node bandwidth (per GPU, effective) <output id="ibO"></output></label>
+              <input id="ib" type="range" min="5" max="100" step="5" value="40" />
+            </div>
+            <div class="ctl">
+              <label for="vae">VAE decode (ms / frame @480p) <output id="vaeO"></output></label>
+              <input id="vae" type="range" min="5" max="200" step="5" value="60" />
+            </div>
+            <div class="ctl">
+              <label for="te">Text encoder (ms) <output id="teO"></output></label>
+              <input id="te" type="range" min="0" max="500" step="10" value="80" />
+            </div>
+            <div class="ctl check">
+              <label><input id="vaePar" type="checkbox" /> Parallelize the VAE across GPUs too</label>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <div class="stats" id="stats"></div>
+      <div id="warn"></div>
+
+      <h2>Estimated time breakdown for this setting</h2>
+      <div class="legend" id="legend"></div>
+      <div class="rows" id="curRow"></div>
+
+      <h2>Changing only the GPU count: scaling</h2>
+      <p class="hint">
+        Each row is the end-to-end time of the same setting on a different number of GPUs (shared scale). On the right are the total and the scaling
+        efficiency (1-GPU time ÷ (G × G-GPU time)). Below the dashed line, the sequence-parallel group spans more than one 8-GPU node.
+      </p>
+      <div class="rows" id="gpuRows"></div>
+      <div class="axis">
+        <span></span>
+        <div class="ticks" id="gpuTicks"></div>
+        <span></span>
+      </div>
+
+      <h2>Changing only the step count: how the shares shift</h2>
+      <p class="hint">
+        Each row shows the estimated time shares of the same setting at a different step count (100% stacked), with the total on the right. Only
+        the number of calls changes; this does not mean the settings give the same quality, and it is not the same as few-step distillation.
+      </p>
+      <div class="rows" id="stepRows"></div>
+      <div class="axis">
+        <span></span>
+        <div class="ticks"><span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span></div>
+        <span></span>
+      </div>
+
+      <details class="tbl">
+        <summary>Data table</summary>
+        <div class="tblwrap"><table id="table"></table></div>
+      </details>
+
+      <details class="assume">
+        <summary>Model assumptions</summary>
+        <ul>
+          <li>
+            tokens = latent frames × (H / s / 2) × (W / s / 2), frames = length × fps + 1, latent frames = 1 + (frames − 1) / 4. Length is the
+            interval between the first and last frame; s is the VAE spatial compression (8 for Wan2.1, 16 for Wan2.2 5B), and the patch is 1×2×2.
+          </li>
+          <li>
+            FLOPs per forward pass ≈ 2·L·n·(4d² + 2d·d_ff) (self-attention projections and FFN) + 4·L·n²·d·k (self-attention, k = fraction kept),
+            matching the formulas in the post. Cross-attention, modulation, norms and the like are ignored; this is not the full model FLOPs.
+          </li>
+          <li>
+            DiT compute time = FLOPs / (SP degree × peak × MFU). All compute shares one fixed MFU; lower efficiency on small blocks and per-kernel
+            throughput differences are not modeled. This is a simplified trend model, and the sign of its error is not guaranteed.
+          </li>
+          <li>Sparse attention scales ideally with the fraction kept, ignoring pattern selection, indexing and irregular memory access; communication still sends the full K/V. Quality and training cost are not modeled.</li>
+          <li>CFG parallel: with CFG on and at least 2 GPUs, the two forward passes run on two GPU groups, each with SP degree G / 2; the communication to combine them is ignored.</li>
+          <li>8 GPUs per node. An SP group of up to 8 GPUs uses intra-node bandwidth; a larger one is limited by inter-node bandwidth.</li>
+          <li>
+            Ulysses: counted as four tensors (Q, K, V, O) per layer, each GPU sends 8·(n/G)·d·(u−1)/u bytes, not overlapped with compute; QKV may be
+            sent together, and the degree u must divide the head count. Bandwidth is the effective rate for that send volume.
+          </li>
+          <li>Ring: R−1 steps per layer, each sending 4·(n/G)·d bytes of K/V, overlapped with that step's block attention; only the part that exceeds compute time is counted.</li>
+          <li>USP: the Ulysses degree is the largest value up to 8 that divides both the head count and the SP degree; the rest is Ring.</li>
+          <li>VAE time scales linearly with pixel count and by default does not parallelize across GPUs; with VAE parallelism on, ideal linear speedup is assumed. The text encoder time is fixed.</li>
+          <li>
+            Collective launch, sequence padding, weight loading, output transfer and video encoding are ignored. The Ulysses feasibility check only tests
+            head divisibility, not memory, the generation settings the model supports, or kernel limits.
+          </li>
+          <li>Layer counts, hidden sizes and head counts in the presets come from public configs; the default MFU, bandwidth and VAE values are placeholders, not calibrated against measurements.</li>
+        </ul>
+      </details>
+    </div>
+    <div id="tip" role="tooltip"></div>
+
+    <script>
+      const MODELS = {
+        wan13: { name: "Wan2.1 1.3B", L: 30, d: 1536, dff: 8960, heads: 12, s: 8 },
+        wan5: { name: "Wan2.2 TI2V 5B", L: 30, d: 3072, dff: 14336, heads: 24, s: 16 },
+        wan14: { name: "Wan2.1 14B", L: 40, d: 5120, dff: 13824, heads: 40, s: 8 },
+      };
+      const RES = { 480: [832, 480], 720: [1280, 704] };
+      const GPUS_PER_NODE = 8;
+      const GPU_STEPS = [1, 2, 4, 8, 16, 32];
+      const SERIES = [
+        { key: "linear", label: "DiT linear layers", color: "var(--series-1)" },
+        { key: "attn", label: "DiT attention", color: "var(--series-2)" },
+        { key: "comm", label: "SP communication (not overlapped)", color: "var(--series-3)" },
+        { key: "vae", label: "VAE decode", color: "var(--series-4)" },
+        { key: "te", label: "Text encoder", color: "var(--series-5)" },
+      ];
+      const STEP_ROWS = [50, 25, 8, 4, 1];
+
+      const $ = (id) => document.getElementById(id);
+      const val = (id) => Number($(id).value);
+
+      function params() {
+        return {
+          m: MODELS[$("model").value],
+          res: RES[$("res").value],
+          dur: val("dur"),
+          fps: val("fps"),
+          steps: val("steps"),
+          keep: val("keep") / 100,
+          gpus: GPU_STEPS[val("gpus")],
+          sp: $("sp").value,
+          peak: val("hw") * 1e12,
+          cfg: $("cfg").checked ? 2 : 1,
+          cfgPar: $("cfgPar").checked,
+          mfu: val("mfu") / 100,
+          nvl: val("nvl") * 1e9,
+          ib: val("ib") * 1e9,
+          vaeMs: val("vae"),
+          teMs: val("te"),
+          vaePar: $("vaePar").checked,
+        };
+      }
+
+      // Split an SP group of g GPUs into Ulysses degree u and Ring degree R (u × R = g)
+      function spPlan(p, g) {
+        const H = p.m.heads;
+        if (g === 1) return { u: 1, R: 1, ok: true };
+        if (p.sp === "ulysses") return { u: g, R: 1, ok: H % g === 0, why: `Ulysses degree ${g} does not divide the head count ${H}` };
+        if (p.sp === "ring") return { u: 1, R: g, ok: true };
+        let u = 1;
+        for (let c = 2; c <= Math.min(g, GPUS_PER_NODE); c++) if (g % c === 0 && H % c === 0) u = c;
+        return { u, R: g / u, ok: true };
+      }
+
+      function compute(p, steps, G) {
+        const { m, res } = p;
+        const frames = p.dur * p.fps + 1;
+        const latentT = 1 + Math.floor((frames - 1) / 4);
+        const n = latentT * Math.floor(res[0] / m.s / 2) * Math.floor(res[1] / m.s / 2);
+
+        // CFG parallel: the two forward passes go to two GPU groups, each doing its own SP
+        const cfgSplit = p.cfg === 2 && p.cfgPar && G >= 2;
+        const g = cfgSplit ? G / 2 : G;
+        const fwd = steps * (cfgSplit ? 1 : p.cfg);
+        const plan = spPlan(p, g);
+
+        const F = p.peak * p.mfu;
+        const linearFlops = 2 * m.L * n * (4 * m.d ** 2 + 2 * m.d * m.dff);
+        const linear = (fwd * linearFlops) / (g * F);
+        const attn = (fwd * 4 * m.L * n * n * m.d * p.keep) / (g * F);
+
+        // Communication time per layer per GPU
+        const crossNode = g > GPUS_PER_NODE;
+        let commLayer = 0;
+        if (plan.u > 1) {
+          // Ulysses: count the Q/K/V/O send volume without assuming a number of collective calls. In USP the Ulysses group stays in-node.
+          const B = p.sp === "ulysses" && crossNode ? p.ib : p.nvl;
+          commLayer += (8 * (n / g) * m.d * (plan.u - 1)) / plan.u / B;
+        }
+        if (plan.R > 1) {
+          // Ring: each step sends one K/V block, overlapped with that block's attention; only the excess is exposed
+          const B = crossNode ? p.ib : p.nvl;
+          const xfer = (4 * (n / g) * m.d) / B;
+          const blk = (4 * (n / plan.R) ** 2 * (m.d / plan.u) * p.keep) / F;
+          commLayer += (plan.R - 1) * Math.max(0, xfer - blk);
+        }
+        const comm = fwd * m.L * commLayer;
+
+        const pixScale = (res[0] * res[1]) / (832 * 480);
+        const vae = (frames * p.vaeMs * pixScale) / 1000 / (p.vaePar ? G : 1);
+        const te = p.teMs / 1000;
+        const total = linear + attn + comm + vae + te;
+        const parts = [];
+        if (cfgSplit) parts.push("CFG×2");
+        if (plan.u > 1) parts.push(`Ulysses×${plan.u}`);
+        if (plan.R > 1) parts.push(`Ring×${plan.R}`);
+        return {
+          n,
+          frames,
+          linear,
+          attn,
+          comm,
+          vae,
+          te,
+          total,
+          ok: plan.ok,
+          why: plan.why,
+          desc: parts.join(" · ") || "1 GPU",
+          crossNode,
+          attnShare: (4 * m.L * n * n * m.d * p.keep) / (linearFlops + 4 * m.L * n * n * m.d * p.keep),
+        };
+      }
+
+      const fmtS = (s) => (s >= 100 ? s.toFixed(0) : s >= 10 ? s.toFixed(1) : s.toFixed(2)) + " s";
+      const fmtPct = (x) => (x * 100).toFixed(x < 0.1 ? 1 : 0) + "%";
+
+      function segs(r, rowLabel) {
+        return SERIES.filter((s) => r[s.key] > 0)
+          .map((s) => {
+            const share = r[s.key] / r.total;
+            return `<div class="seg" style="flex:${share} 1 0;background:${s.color}" data-tip="${rowLabel} · ${s.label}: ${fmtS(r[s.key])} (${fmtPct(
+              share
+            )})"></div>`;
+          })
+          .join("");
+      }
+      const naRow = (lab, cls, why) => `<div class="lab ${cls}">${lab}</div><div class="na">Not feasible: ${why}</div><div class="tot">—</div>`;
+
+      function render() {
+        const p = params();
+        $("durO").textContent = p.dur + " s";
+        $("stepsO").textContent = p.steps;
+        $("keepO").textContent = Math.round(p.keep * 100) + "%";
+        $("gpusO").textContent = p.gpus;
+        $("mfuO").textContent = Math.round(p.mfu * 100) + "%";
+        $("nvlO").textContent = p.nvl / 1e9 + " GB/s";
+        $("ibO").textContent = p.ib / 1e9 + " GB/s";
+        $("vaeO").textContent = p.vaeMs + " ms";
+        $("teO").textContent = p.teMs + " ms";
+
+        const r = compute(p, p.steps, p.gpus);
+        const r1 = compute(p, p.steps, 1);
+        const rtf = r.total / p.dur;
+        const eff = r1.total / (p.gpus * r.total);
+        $("stats").innerHTML = [
+          ["Estimated latency", r.ok ? fmtS(r.total) : "—", r.ok ? `${rtf.toFixed(rtf >= 10 ? 0 : 1)}× the video length` : "head divisibility not met"],
+          ["Tokens", r.n.toLocaleString(), `${r.frames} frames · ${p.fps} fps`],
+          ["Attention share of FLOPs", fmtPct(r.attnShare), "Projections, FFN and self-attention only"],
+          ["Share outside the DiT", r.ok ? fmtPct((r.vae + r.te) / r.total) : "—", "VAE + text encoder"],
+          ["Parallelism", r.desc, r.crossNode ? "SP group spans nodes" : p.gpus > GPUS_PER_NODE ? "SP in-node · CFG across nodes" : p.gpus > 1 ? "In-node" : "—"],
+          ["Scaling efficiency", r.ok ? fmtPct(eff) : "—", `${p.gpus} GPUs vs 1 GPU`],
+        ]
+          .map(([k, v, s]) => `<div class="stat"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${s}</div></div>`)
+          .join("");
+        $("warn").innerHTML = r.ok ? "" : `<div class="warn">${r.why}. Try USP or Ring instead.</div>`;
+
+        const curLab = `${p.gpus} GPU${p.gpus > 1 ? "s" : ""} · ${p.steps} step${p.steps > 1 ? "s" : ""}`;
+        $("curRow").innerHTML = r.ok
+          ? `<div class="lab cur">${p.steps} step${p.steps > 1 ? "s" : ""}</div><div class="bar">${segs(r, curLab)}</div><div class="tot">${fmtS(r.total)}</div>`
+          : naRow(`${p.steps} step${p.steps > 1 ? "s" : ""}`, "cur", r.why);
+
+        // Scaling rows: absolute time on a shared scale
+        const gRows = GPU_STEPS.map((G) => [G, compute(p, p.steps, G)]);
+        const maxT = Math.max(...gRows.filter(([, x]) => x.ok).map(([, x]) => x.total));
+        $("gpuRows").innerHTML = gRows
+          .map(([G, x]) => {
+            const cls = (G === p.gpus ? "cur " : "") + (x.crossNode && !compute(p, p.steps, G / 2).crossNode ? "cliff" : "");
+            if (!x.ok) return naRow(`${G} GPU${G > 1 ? "s" : ""}`, cls, x.why);
+            const e = r1.total / (G * x.total);
+            return `<div class="lab ${cls}">${G} GPU${G > 1 ? "s" : ""}</div><div class="abs"><div class="bar" style="width:${(x.total / maxT) * 100}%">${segs(
+              x,
+              `${G} GPU${G > 1 ? "s" : ""} (${x.desc})`
+            )}</div></div><div class="tot">${fmtS(x.total)} · ${fmtPct(e)}</div>`;
+          })
+          .join("");
+        $("gpuTicks").innerHTML = [0, 0.25, 0.5, 0.75, 1].map((f) => `<span>${fmtS(maxT * f)}</span>`).join("");
+
+        const rows = STEP_ROWS.map((s) => [s, compute(p, s, p.gpus)]);
+        $("stepRows").innerHTML = rows
+          .map(([s, rr]) =>
+            rr.ok
+              ? `<div class="lab ${s === p.steps ? "cur" : ""}">${s} step${s > 1 ? "s" : ""}</div><div class="bar">${segs(rr, s + (s > 1 ? " steps" : " step"))}</div><div class="tot">${fmtS(
+                  rr.total
+                )}</div>`
+              : naRow(`${s} step${s > 1 ? "s" : ""}`, "", rr.why)
+          )
+          .join("");
+
+        const tr = (lab, x) =>
+          `<tr><td>${lab}</td>${SERIES.map((s) => `<td>${x.ok ? fmtS(x[s.key]) : "—"}</td>`).join("")}<td>${x.ok ? fmtS(x.total) : "—"}</td></tr>`;
+        $("table").innerHTML =
+          `<tr><th>Setting</th>${SERIES.map((s) => `<th>${s.label}</th>`).join("")}<th>Total</th></tr>` +
+          tr(`Current (${p.gpus} GPU${p.gpus > 1 ? "s" : ""} · ${p.steps} step${p.steps > 1 ? "s" : ""})`, r) +
+          gRows.map(([G, x]) => tr(`${G} GPU${G > 1 ? "s" : ""} (${x.desc})`, x)).join("") +
+          rows.map(([s, x]) => tr(`${s} step${s > 1 ? "s" : ""}`, x)).join("");
+        resize();
+      }
+
+      $("legend").innerHTML = SERIES.map((s) => `<span><i style="background:${s.color}"></i>${s.label}</span>`).join("");
+      document.querySelectorAll("input,select").forEach((el) => el.addEventListener("input", render));
+
+      // tooltip
+      const tip = $("tip");
+      document.addEventListener("mousemove", (e) => {
+        const t = e.target.closest && e.target.closest("[data-tip]");
+        if (!t) {
+          tip.style.opacity = 0;
+          return;
+        }
+        tip.textContent = t.dataset.tip;
+        tip.style.opacity = 1;
+        const w = tip.offsetWidth;
+        const x = Math.min(e.clientX + 12, window.innerWidth - w - 8);
+        tip.style.left = Math.max(8, x) + "px";
+        tip.style.top = e.clientY + 14 + "px";
+      });
+
+      // Inside the blog iframe: height follows the content, and the theme follows the parent page
+      function resize() {
+        try {
+          if (window.frameElement) window.frameElement.style.height = document.body.scrollHeight + "px";
+        } catch (e) {}
+      }
+      function syncTheme() {
+        try {
+          const t = window.parent.document.documentElement.getAttribute("data-theme");
+          if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t);
+          else document.documentElement.removeAttribute("data-theme");
+        } catch (e) {}
+      }
+      try {
+        if (window.parent !== window) {
+          new MutationObserver(syncTheme).observe(window.parent.document.documentElement, {
+            attributes: true,
+            attributeFilter: ["data-theme"],
+          });
+        }
+      } catch (e) {}
+      syncTheme();
+      new ResizeObserver(resize).observe(document.body);
+      render();
+    </script>
+  </body>
+</html>
