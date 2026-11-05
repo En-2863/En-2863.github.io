@@ -13,7 +13,7 @@ profile:
     <p>University of Illinois Urbana-Champaign</p>
     <p>Urbana, IL, USA</p>
 
-selected_papers: false
+selected_papers: true
 social: true
 
 announcements:
@@ -23,7 +23,7 @@ latest_posts:
   enabled: false
 ---
 
-I am a first-year M.S. student in Computer Science at the [University of Illinois Urbana-Champaign (UIUC)](https://cs.illinois.edu/), advised by [Prof. Fan Lai](https://fanlai.me/). I received my B.S. in Computer Science from Peking University, where I was fortunate to collaborate with [Prof. Xin Jin](https://xinjin.github.io/).
+I am a second-year M.S. student in Computer Science at the [University of Illinois Urbana-Champaign (UIUC)](https://cs.illinois.edu/), advised by [Prof. Fan Lai](https://fanlai.me/). I received my B.S. in Computer Science from Peking University, where I was fortunate to collaborate with [Prof. Xin Jin](https://xinjin.github.io/). In summer 2026, I joined Cisco as a Research Intern.
 
 My research interests lie broadly in **machine learning systems (MLSys)**, particularly in **large language model (LLM) serving, scheduling, and system optimization**.  
 I am interested in building efficient, SLO-aware inference systems that can bridge the gap between model performance and practical serving constraints.

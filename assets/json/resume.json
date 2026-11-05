@@ -4,7 +4,6 @@
     "label": "M.S. Student in Computer Science",
     "image": "profile.jpg",
     "email": "zhangw2@illinois.edu",
-    "phone": "(+1) 217-418-0901",
     "url": "https://en-2863.github.io/",
     "summary": "M.S. student in Computer Science at the University of Illinois Urbana-Champaign, advised by Prof. Fan Lai. Previously received B.S. in Computer Science from Peking University. Interested in machine learning systems, large language model serving, and scheduling for SLO-aware inference.",
     "location": {
@@ -15,11 +14,6 @@
     },
     "profiles": [
       {
-        "network": "Email",
-        "username": "ewea20221310@gmail.com",
-        "url": "mailto:ewea20221310@gmail.com"
-      },
-      {
         "network": "GitHub",
         "username": "En-2863",
         "url": "https://github.com/En-2863"
@@ -27,12 +21,12 @@
       {
         "network": "Google Scholar",
         "username": "Wei Zhang",
-        "url": "https://scholar.google.com/"
+        "url": "https://scholar.google.com/citations?user=mvn56BIAAAAJ"
       },
       {
         "network": "LinkedIn",
         "username": "Wei Zhang",
-        "url": "https://www.linkedin.com/in/"
+        "url": "https://www.linkedin.com/in/wei-zhang-0962372ba"
       }
     ]
   },
@@ -73,9 +67,9 @@
       "highlights": []
     },
     {
-      "name": "Tempo: SLO-aware LLM Serving System",
+      "name": "JITServe: SLO-aware LLM Serving System",
       "position": "Core Developer",
-      "url": "https://arxiv.org/abs/",
+      "url": "https://arxiv.org/abs/2504.20068",
       "startDate": "2024-09-01",
       "endDate": "2025-04-01",
       "summary": "Built an SLO-aware LLM serving system on top of vLLM to improve responsiveness across diverse workloads.",
@@ -107,6 +101,15 @@
         "Aggregated WeChat public account data with web crawling.",
         "Fine-tuned Llama2 and ChatGLM models to improve downstream accuracy."
       ]
+    }
+  ],
+  "publications": [
+    {
+      "name": "JITServe: SLO-aware LLM Serving with Imprecise Request Information",
+      "publisher": "USENIX NSDI 2026",
+      "releaseDate": "2026",
+      "url": "https://arxiv.org/abs/2504.20068",
+      "summary": "Wei Zhang*, Zhiyu Wu*, Yi Mu, Rui Ning, Banruo Liu, Nikhil Sarda, Myungjin Lee, Fan Lai (* equal contribution)"
     }
   ],
   "projects": [
