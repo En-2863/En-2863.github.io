@@ -178,7 +178,6 @@ exclude:
   - package.json
   - package-lock.json
   - _pages/books.md
-  - _pages/blog.md
   - _pages/teaching.md
   - purgecss.config.js
   - README.md
@@ -247,8 +246,8 @@ jekyll-archives:
       tags: "/blog/:type/:name/"
       categories: "/blog/:type/:name/"
 
-display_tags: ["formatting", "images", "links", "math", "code", "blockquotes"] # these tags will be displayed on the front page of your blog
-display_categories: ["external-services"] # these categories will be displayed on the front page of your blog
+display_tags: ["video-generation", "mlsys", "diffusion"] # these tags will be displayed on the front page of your blog
+display_categories: [] # these categories will be displayed on the front page of your blog
 
 # -----------------------------------------------------------------------------
 # Jekyll Scholar

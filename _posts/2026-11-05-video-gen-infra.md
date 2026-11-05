@@ -4,9 +4,7 @@ title: 视频生成 infra：瓶颈与取舍
 description: LLM serving 的直觉在视频生成上逐条失效：合批、加速、质量与流式服务。
 tags: video-generation mlsys diffusion
 giscus_comments: false
-# TODO(发布前): 改成实际发布日期（同时改文件名），并删掉 published: false
-date: 2026-10-30
-published: false
+date: 2026-11-05
 featured: false
 
 authors:
@@ -123,7 +121,7 @@ _styles: |
 - AR 那篇还没投：early KV handoff、history 管理、调度这些只写“值得做”，不写“怎么做”。
 - 证据强度：每个结论都写清楚条件，比如“在 X 模型 / Y 分辨率 / Z GPU 上我观察到…”。
 - 发布前搜索 class="todo"，确认全部清掉。
-- 英文版在 2026-10-30-video-gen-infra-en.md，改正文时同步改；改日期/文件名时两篇一起改。
+- 英文版在 2026-11-05-video-gen-infra-en.md，改正文时同步改；改日期/文件名时两篇一起改。
 {% endcomment %}
 
 <nav class="infra-lang" aria-label="语言">

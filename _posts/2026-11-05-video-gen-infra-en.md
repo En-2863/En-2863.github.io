@@ -4,9 +4,7 @@ title: "Video generation infra: bottlenecks and trade-offs"
 description: LLM-serving intuitions fail one by one on video generation — batching, acceleration, quality and streaming.
 tags: video-generation mlsys diffusion
 giscus_comments: false
-# TODO(before publishing): set the real date (and file name) together with the Chinese post, and remove published: false
-date: 2026-10-30
-published: false
+date: 2026-11-05
 featured: false
 
 authors:

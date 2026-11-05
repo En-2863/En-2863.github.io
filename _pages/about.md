@@ -20,7 +20,7 @@ announcements:
   enabled: true
 
 latest_posts:
-  enabled: false
+  enabled: true
 ---
 
 I am a second-year M.S. student in Computer Science at the [University of Illinois Urbana-Champaign (UIUC)](https://cs.illinois.edu/), advised by [Prof. Fan Lai](https://fanlai.me/). I received my B.S. in Computer Science from Peking University, where I was fortunate to collaborate with [Prof. Xin Jin](https://xinjin.github.io/). In summer 2026, I joined Cisco as a Research Intern.
