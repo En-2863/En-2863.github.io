@@ -76,11 +76,6 @@ ninja.data = [{
           description: "Enhanced Grounded Diffusion for open-vocabulary segmentation using Stable Diffusion XL.",
           section: "Projects",handler: () => {
               window.location.href = "/projects/1_project/";
-            },},{id: "projects-onereel-efficient-multi-scene-video-generation-with-scene-structured-attention",
-          title: 'OneReel: Efficient Multi-Scene Video Generation with Scene-Structured Attention',
-          description: "Training-free multi-scene video generation, 1.7–4.9× faster than dense attention on four video models.",
-          section: "Projects",handler: () => {
-              window.location.href = "/projects/2_onereel/";
             },},{
         id: 'social-email',
         title: 'email',
