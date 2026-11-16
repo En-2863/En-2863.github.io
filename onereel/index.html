@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OneReel</title>
+<meta name="description" content="OneReel: efficient multi-scene video generation with scene-structured attention.">
+<style>
+:root {
+  --bg: #ffffff;
+  --surface: #f6f4fa;
+  --card: #ffffff;
+  --ink: #111111;
+  --ink-2: #444444;
+  --ink-3: #6b6b6b;
+  --line: #e4e0ec;
+  --accent: #8b6cc1;
+  --accent-soft: #ece6f6;
+  --accent-ink: #5e3f99;
+  --dense: #e07b39;
+  --separate: #f2b95e;
+  --figure-bg: #ffffff;
+  --radius: 12px;
+  --maxw: 1120px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #131217;
+    --surface: #1b1a21;
+    --card: #1f1e26;
+    --ink: #f2f0f6;
+    --ink-2: #c9c5d3;
+    --ink-3: #9a95a6;
+    --line: #2f2c39;
+    --accent: #a98be0;
+    --accent-soft: #2b2540;
+    --accent-ink: #c8b4f0;
+    --dense: #ec955a;
+    --separate: #f5c879;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #131217;
+  --surface: #1b1a21;
+  --card: #1f1e26;
+  --ink: #f2f0f6;
+  --ink-2: #c9c5d3;
+  --ink-3: #9a95a6;
+  --line: #2f2c39;
+  --accent: #a98be0;
+  --accent-soft: #2b2540;
+  --accent-ink: #c8b4f0;
+  --dense: #ec955a;
+  --separate: #f5c879;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 16px/1.6 "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--accent-ink); }
+.wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+section { padding: 56px 0; }
+section + section { border-top: 1px solid var(--line); }
+h2 { font-size: 28px; font-weight: 500; letter-spacing: -0.01em; margin: 0 0 8px; }
+.lede { color: var(--ink-2); margin: 0 0 28px; max-width: 760px; }
+video { display: block; width: 100%; height: auto; background: #000; border-radius: 8px; }
+
+/* header */
+header { padding: 64px 0 24px; text-align: center; }
+.title { font-size: clamp(40px, 7vw, 68px); font-weight: 600; letter-spacing: -0.03em; margin: 0; line-height: 1.05; }
+.title span { color: var(--accent); }
+.subtitle { font-size: clamp(18px, 2.4vw, 24px); font-weight: 400; color: var(--ink-2); margin: 12px auto 28px; max-width: 760px; line-height: 1.35; }
+.authors { font-size: 17px; margin: 0 0 6px; }
+.authors span { white-space: nowrap; margin: 0 8px; }
+.affil { color: var(--ink-3); font-size: 14px; margin: 0; }
+.affil span { margin: 0 8px; display: inline-block; max-width: 100%; }
+.buttons { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin: 26px 0 0; }
+.btn {
+  display: inline-flex; align-items: center; gap: 8px; padding: 9px 18px; border-radius: 999px;
+  background: var(--ink); color: var(--bg); text-decoration: none; font-size: 15px; font-weight: 500;
+}
+.btn svg { width: 16px; height: 16px; }
+.btn.todo { opacity: .45; pointer-events: none; }
+
+/* hero */
+.hero { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: 28px; align-items: start; }
+.hero-cap { font-size: 14px; color: var(--ink-3); margin: 10px 0 0; }
+.scene-list { list-style: none; margin: 0; padding: 0; counter-reset: s; }
+.scene-list li { counter-increment: s; display: flex; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 15px; color: var(--ink-2); }
+.scene-list li::before { content: counter(s); flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--accent-soft); color: var(--accent-ink); font-size: 12px; font-weight: 600; display: grid; place-items: center; margin-top: 1px; }
+.scene-list li.on { color: var(--ink); }
+.scene-list li.on::before { background: var(--accent); color: #fff; }
+
+/* stats */
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-top: 40px; }
+.stat { background: var(--surface); border-radius: var(--radius); padding: 18px 18px 16px; }
+.stat b { display: block; font-size: 30px; font-weight: 600; letter-spacing: -0.02em; color: var(--accent-ink); line-height: 1.1; }
+.stat span { display: block; font-size: 14px; color: var(--ink-2); margin-top: 6px; line-height: 1.4; }
+
+.abstract { max-width: 820px; color: var(--ink-2); font-size: 16.5px; }
+
+/* tabs */
+.tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 18px; }
+.tab { border: 1px solid var(--line); background: var(--card); color: var(--ink-2); border-radius: 999px; padding: 7px 15px; font: inherit; font-size: 14px; cursor: pointer; }
+.tab[aria-selected="true"] { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+
+/* synced comparison */
+.cmp-grid { display: grid; gap: 14px; }
+.cmp-grid.n3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.cmp-grid.n2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.cmp-label { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; margin: 0 0 8px; }
+.cmp-label i { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+.cmp-label.ours { color: var(--accent-ink); font-weight: 600; }
+.controls { display: flex; align-items: center; gap: 12px; margin: 16px 0 10px; }
+.play { width: 38px; height: 38px; border-radius: 50%; border: 0; background: var(--ink); color: var(--bg); display: grid; place-items: center; cursor: pointer; flex: none; }
+.play svg { width: 14px; height: 14px; }
+.strip { flex: 1; display: flex; gap: 3px; height: 30px; position: relative; }
+.seg { flex-basis: 0; border: 0; padding: 0; border-radius: 5px; background: var(--accent-soft); color: var(--accent-ink); font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; position: relative; overflow: hidden; }
+.seg.on { background: var(--accent); color: #fff; }
+.seg .fill { position: absolute; inset: 0 auto 0 0; background: rgba(255,255,255,.28); width: 0; pointer-events: none; }
+.seg span { position: relative; }
+.now { min-height: 52px; font-size: 15.5px; color: var(--ink); margin: 0; }
+.now b { color: var(--accent-ink); font-weight: 600; margin-right: 6px; }
+
+/* minute */
+.minute { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.minute .scene-list { max-height: 470px; overflow-y: auto; padding-right: 6px; }
+.minute .scene-list li { cursor: pointer; font-size: 14px; }
+.subhead { font-size: 18px; font-weight: 500; margin: 44px 0 6px; }
+
+/* figures */
+.figs { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; }
+figure { margin: 0; }
+figure img { width: 100%; height: auto; display: block; background: var(--figure-bg); border-radius: 10px; padding: 14px; border: 1px solid var(--line); }
+figcaption { font-size: 14px; color: var(--ink-2); margin-top: 10px; }
+figure.wide { grid-column: 1 / -1; }
+
+/* gallery */
+.gallery { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; }
+.card .now { font-size: 13.5px; min-height: 64px; color: var(--ink-2); margin-top: 8px; }
+.card .strip { height: 8px; margin-top: 10px; flex: none; }
+.card .seg { font-size: 0; border-radius: 3px; }
+
+pre.bib { background: var(--surface); border-radius: var(--radius); padding: 18px 20px; overflow-x: auto; font: 13.5px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--ink); margin: 0; }
+.copy { margin-top: 10px; }
+footer { padding: 32px 0 56px; color: var(--ink-3); font-size: 13.5px; border-top: 1px solid var(--line); }
+.note { color: var(--ink-3); font-size: 13.5px; margin-top: 12px; }
+
+@media (max-width: 900px) {
+  .hero, .minute, .figs { grid-template-columns: minmax(0, 1fr); }
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .wrap { padding: 0 16px; }
+  section { padding: 40px 0; }
+  .cmp-grid.n3, .cmp-grid.n2, .gallery { grid-template-columns: minmax(0, 1fr); }
+  .strip { height: 26px; }
+  .seg { font-size: 0; }
+  .minute .scene-list { max-height: 300px; }
+}
+</style>
+</head>
+<body>
+
+<header class="wrap">
+  <h1 class="title">One<span>Reel</span></h1>
+  <p class="subtitle">Efficient Multi-Scene Video Generation with Scene-Structured Attention</p>
+  <p class="authors">
+    <span>Wei Zhang<sup>*1</sup></span><span>Yuchen Wang<sup>*1</sup></span><span>Tianrui Feng<sup>2</sup></span>
+    <span>Hongrui Wu<sup>3</sup></span><span>Chenfeng Xu<sup>2</sup></span><span>Fan Lai<sup>1</sup></span>
+  </p>
+  <p class="affil">
+    <span><sup>1</sup>University of Illinois Urbana-Champaign</span><span><sup>2</sup>University of Texas at Austin</span>
+    <span><sup>3</sup>Stanford University</span><span><sup>*</sup>Equal contribution</span>
+  </p>
+  <div class="buttons">
+    <a class="btn" href="https://arxiv.org/abs/2611.10594"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 1h5l4 4v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1zm5 1v3h3"/></svg>Paper</a>
+    <a class="btn" href="https://github.com/UIUC-MLSys/OneReel"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0a8 8 0 0 0-2.5 15.6c.4 0 .5-.2.5-.4v-1.5c-2.2.5-2.7-1-2.7-1-.4-.9-.9-1.2-.9-1.2-.7-.5.1-.5.1-.5.8.1 1.2.8 1.2.8.7 1.3 1.9.9 2.4.7 0-.5.3-.9.5-1.1-1.8-.2-3.6-.9-3.6-4 0-.9.3-1.6.8-2.1-.1-.2-.4-1 .1-2.1 0 0 .7-.2 2.2.8a7.4 7.4 0 0 1 4 0c1.5-1 2.2-.8 2.2-.8.4 1.1.2 1.9.1 2.1.5.6.8 1.3.8 2.1 0 3.1-1.9 3.7-3.6 3.9.3.3.6.8.6 1.5v2.2c0 .2.1.5.6.4A8 8 0 0 0 8 0z"/></svg>Code</a>
+    <a class="btn" href="#bibtex"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M3 2h10v12l-5-3-5 3z"/></svg>BibTeX</a>
+  </div>
+</header>
+
+<section class="wrap" style="border-top:0;padding-top:28px">
+  <div class="hero">
+    <div>
+      <video id="hero-video" muted loop playsinline preload="metadata"></video>
+      <p class="hero-cap">A six-scene story generated in one pass with OneReel on MiniMax H3. Each scene follows its own
+        sentence, from packing a suitcase at home to a sunset on a balcony.</p>
+    </div>
+    <ol class="scene-list" id="hero-scenes"></ol>
+  </div>
+  <div class="stats">
+    <div class="stat"><b>1.7–4.9×</b><span>end-to-end speedup over dense attention</span></div>
+    <div class="stat"><b>1.2–2.2×</b><span>speedup over existing sparse-attention methods</span></div>
+    <div class="stat"><b>+34–37 pp</b><span>text-following accuracy, with cross-scene consistency kept</span></div>
+    <div class="stat"><b>8.1×</b><span>faster one-minute videos, scene Text accuracy 2.6% → 61.0%</span></div>
+  </div>
+</section>
+
+<section class="wrap">
+  <h2>Abstract</h2>
+  <p class="abstract">Multi-scene video generation must follow scene-specific prompts while preserving consistency across
+    scenes. Dense joint generation enables cross-scene information exchange but incurs quadratic attention cost, whereas
+    separate generation avoids this cost at the expense of cross-scene consistency. We present OneReel, a training-free
+    system that exploits scene structure to enable efficient multi-scene generation. Our key insight is that multi-scene
+    generation can preserve complete intra-scene attention while restricting cross-scene information exchange to a
+    bounded shared memory. OneReel uses scene prompts and durations to establish scene-specific attention scopes and
+    dynamically selects a bounded set of representative latent frames for cross-scene sharing. This reduces video
+    attention complexity from quadratic to linear in the number of scenes. To translate these savings into execution
+    speedups, OneReel packs scene-local and shared K/V into dense variable-length attention and employs work-balanced
+    multi-GPU partitioning with communication-aware selection between K/V gathering and Ulysses-style parallelism. Our
+    evaluations across four video generation models show that OneReel achieves 1.7–4.9× end-to-end speedup over dense
+    attention and 1.2–2.2× over existing sparse-attention advances, while improving text-following accuracy by 34–37
+    percentage points and maintaining cross-scene consistency.</p>
+</section>
+
+<section class="wrap" id="compare">
+  <h2>Joint, separate, or OneReel</h2>
+  <p class="lede">The same multi-scene prompt and seed on HunyuanVideo-1.5. Dense joint generation keeps the subject but
+    tends to blur the scenes into one. Separate generation follows each prompt but often changes who the subject is.
+    OneReel follows every scene and keeps the subject. The three
+    videos play in sync; click a scene to jump to it.</p>
+  <div class="tabs" id="cmp-tabs" role="tablist"></div>
+  <div id="cmp-player"></div>
+</section>
+
+<section class="wrap" id="minute">
+  <h2>One-minute videos</h2>
+  <p class="lede">Requests with 26–30 scenes and 59 seconds of video, generated in one pass on HunyuanVideo-1.5 without
+    fine-tuning.</p>
+  <div class="tabs" id="min-tabs" role="tablist"></div>
+  <div class="minute">
+    <div>
+      <video id="min-video" controls muted playsinline preload="metadata"></video>
+      <p class="now" id="min-now" style="margin-top:12px"></p>
+    </div>
+    <ol class="scene-list" id="min-scenes"></ol>
+  </div>
+  <h3 class="subhead">Same request, dense joint generation</h3>
+  <p class="lede" style="margin-bottom:18px">On this request, dense attention stays on nearly the same shot for the whole minute.</p>
+  <div id="min-cmp"></div>
+</section>
+
+<section class="wrap" id="method">
+  <h2>How it works</h2>
+  <p class="lede">Every scene keeps full attention over its own frames and its own sentence. Across scenes, information
+    flows only through a small memory of representative frames. The resulting attention scopes are packed into one
+    dense variable-length attention call, so the savings turn into real speedups.</p>
+  <div class="figs">
+    <figure>
+      <img src="assets/sharing.png" alt="Representative frames chosen by clustering at step t are shared with every scene at step t+1" loading="lazy">
+      <figcaption><b>Bounded shared memory.</b> At each denoising step, latent frames are clustered and one
+        representative per cluster is shared with every scene at the next step.</figcaption>
+    </figure>
+    <figure>
+      <img src="assets/packing.png" alt="Scene scopes copied into contiguous sequences for one dense varlen attention call" loading="lazy">
+      <figcaption><b>Dense packing.</b> Each scene's own and shared K/V are packed into a contiguous sequence, so one
+        variable-length call runs on full tiles with no masked work.</figcaption>
+    </figure>
+    <figure class="wide">
+      <img src="assets/fig1_latency_styled.png" alt="End-to-end latency of dense, sparse baselines and OneReel on four models" loading="lazy">
+      <figcaption><b>End-to-end latency</b> on four models at 480p and 720p, against dense attention, separate
+        generation and sparse-attention baselines.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="wrap" id="gallery">
+  <h2>More results</h2>
+  <p class="lede">OneReel on two base models, without any training.</p>
+  <div class="tabs" id="gal-tabs" role="tablist"></div>
+  <div class="gallery" id="gal-grid"></div>
+</section>
+
+<section class="wrap" id="holocine">
+  <h2>Accelerating native multi-scene models</h2>
+  <p class="lede">OneReel's runtime also speeds up models that already have their own multi-scene attention. On HoloCine,
+    keeping its original attention policy, OneReel on two H200 GPUs is 1.93× faster end to end than the official
+    single-GPU implementation and produces an identical video after 50 denoising steps.</p>
+  <div style="max-width:760px">
+    <video id="holo-video" controls muted playsinline preload="metadata"></video>
+    <p class="now" id="holo-now" style="margin-top:12px"></p>
+  </div>
+</section>
+
+<section class="wrap" id="bibtex">
+  <h2>BibTeX</h2>
+  <pre class="bib" id="bib">@article{zhang2026onereel,
+  title   = {OneReel: Efficient Multi-Scene Video Generation with Scene-Structured Attention},
+  author  = {Zhang, Wei and Wang, Yuchen and Feng, Tianrui and Wu, Hongrui and Xu, Chenfeng and Lai, Fan},
+  journal = {arXiv preprint arXiv:2611.10594},
+  year    = {2026}
+}</pre>
+  <button class="tab copy" id="copy-bib">Copy</button>
+</section>
+
+<footer class="wrap">
+  Videos generated with HunyuanVideo-1.5 (Tencent Hunyuan Community License), Wan2.2-TI2V-5B (Apache 2.0), MiniMax H3
+  and HoloCine. All results are training-free. Examples are selected from our multi-scene prompts, with one generation per prompt (seed 0).
+  In comparisons, every method uses the same prompt, seed and settings.
+</footer>
+
+<script src="data.js"></script>
+<script>
+const P = window.PAGE;
+const $ = (s, r = document) => r.querySelector(s);
+const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const PLAY = '<svg viewBox="0 0 14 14" fill="currentColor"><path d="M3 1.5v11l9-5.5z"/></svg>';
+const PAUSE = '<svg viewBox="0 0 14 14" fill="currentColor"><path d="M3 1.5h3v11H3zm5 0h3v11H8z"/></svg>';
+
+function setSrc(v, item) { v.poster = item.poster; v.src = item.src; v.style.aspectRatio = item.width + ' / ' + item.height; }
+function sceneAt(scenes, t) { const i = scenes.findIndex(([, a, b]) => t >= a && t < b); return i < 0 ? scenes.length - 1 : i; }
+
+// play muted videos only while they are on screen
+const io = new IntersectionObserver(es => es.forEach(e => {
+  const v = e.target; if (v.dataset.manual) return;
+  if (e.isIntersecting) v.play().catch(() => {}); else v.pause();
+}), { threshold: 0.35 });
+const autoplay = v => io.observe(v);
+
+// scene strip: one button per scene, width = duration; returns update(t)
+function strip(scenes, seek) {
+  const s = el('div', 'strip');
+  const segs = scenes.map(([, a, b], i) => {
+    const g = el('button', 'seg', `<span class="fill"></span><span>${i + 1}</span>`);
+    g.style.flexGrow = Math.max(b - a, 0.01); g.title = `Scene ${i + 1}`;
+    g.onclick = () => seek(a + 0.01); s.append(g); return g;
+  });
+  return { node: s, update(t) {
+    const k = sceneAt(scenes, t);
+    segs.forEach((g, i) => { g.classList.toggle('on', i === k);
+      const [, a, b] = scenes[i]; g.firstChild.style.width = i === k ? `${100 * (t - a) / (b - a)}%` : '0'; });
+    return k;
+  } };
+}
+
+// several videos of the same length kept in sync, the last one leads
+function synced(root, items, labels) {
+  root.innerHTML = '';
+  const grid = el('div', 'cmp-grid n' + items.length);
+  const vids = items.map((it, i) => {
+    const cell = el('div');
+    const lab = labels[i];
+    cell.append(el('p', 'cmp-label' + (lab.ours ? ' ours' : ''), `<i style="background:${lab.color}"></i>${lab.text}`));
+    const v = el('video'); v.muted = true; v.playsInline = true; v.preload = 'auto'; v.loop = false; setSrc(v, it);
+    cell.append(v); grid.append(cell); return v;
+  });
+  const lead = vids[vids.length - 1], scenes = items[items.length - 1].scenes;
+  const ctr = el('div', 'controls'), btn = el('button', 'play', PAUSE);
+  btn.setAttribute('aria-label', 'Play or pause');
+  const seek = t => vids.forEach(v => { v.currentTime = t; });
+  const st = strip(scenes, seek);
+  ctr.append(btn, st.node);
+  const now = el('p', 'now');
+  root.append(grid, ctr, now);
+  let playing = false, visible = false, last = -1;
+  const play = () => { playing = true; btn.innerHTML = PAUSE; vids.forEach(v => v.play().catch(() => {})); };
+  const pause = () => { playing = false; btn.innerHTML = PLAY; vids.forEach(v => v.pause()); };
+  btn.onclick = () => { root.dataset.user = playing ? 'paused' : ''; playing ? pause() : play(); };
+  lead.addEventListener('ended', () => { seek(0); if (playing) play(); });
+  (function tick() {
+    if (!root.isConnected) return;
+    const t = lead.currentTime;
+    vids.forEach(v => { if (v !== lead && Math.abs(v.currentTime - t) > 0.12) v.currentTime = t; });
+    const k = st.update(t);
+    if (k !== last) { last = k; now.innerHTML = `<b>Scene ${k + 1}/${scenes.length}</b>${esc(scenes[k][0])}`; }
+    requestAnimationFrame(tick);
+  })();
+  new IntersectionObserver(es => { visible = es[0].isIntersecting;
+    if (visible && root.dataset.user !== 'paused') play(); else if (!visible) { pause(); btn.innerHTML = PLAY; } },
+    { threshold: 0.3 }).observe(grid);
+  btn.innerHTML = PLAY;
+}
+
+function tabs(root, names, onPick) {
+  root.innerHTML = '';
+  const bs = names.map((n, i) => { const b = el('button', 'tab', esc(n)); b.setAttribute('role', 'tab');
+    b.onclick = () => { bs.forEach(x => x.setAttribute('aria-selected', x === b)); onPick(i); }; root.append(b); return b; });
+  bs[0].click();
+}
+
+// hero
+(() => {
+  const v = $('#hero-video'); setSrc(v, P.hero); autoplay(v);
+  P.hero.scenes.forEach(([s]) => $('#hero-scenes').append(el('li', null, esc(s))));
+})();
+
+// joint / separate / OneReel
+const LAB = { 'Joint (dense)': { color: 'var(--dense)' }, 'Separate': { color: 'var(--separate)' }, 'OneReel (ours)': { color: 'var(--accent)', ours: true } };
+const titleCase = s => s.charAt(0).toUpperCase() + s.slice(1);
+const CMP_NAMES = { holo_3: 'Boxing gym', holo_5: 'Enchanted forest', ours_S08: 'Blacksmith', ours_C05: 'Detective' };
+tabs($('#cmp-tabs'), P.compare.map(c => CMP_NAMES[c.id] || titleCase(c.subject)), i => {
+  const c = P.compare[i];
+  synced($('#cmp-player'), c.methods, c.methods.map(m => ({ text: m.label, ...LAB[m.label] })));
+});
+
+// one-minute
+(() => {
+  const v = $('#min-video'), list = $('#min-scenes'), now = $('#min-now');
+  let cur = null, last = -1, lis = [];
+  v.dataset.manual = 1;
+  const name = k => titleCase(k.src.match(/minute_(.+)\.mp4/)[1].replace('_', ' '));
+  tabs($('#min-tabs'), P.minute.map(name), i => {
+    cur = P.minute[i]; setSrc(v, cur); last = -1; list.innerHTML = '';
+    lis = cur.scenes.map(([s, a]) => { const li = el('li', null, esc(s)); li.onclick = () => { v.currentTime = a + 0.01; v.play(); }; list.append(li); return li; });
+    list.scrollTop = 0;
+  });
+  v.addEventListener('timeupdate', () => {
+    const k = sceneAt(cur.scenes, v.currentTime); if (k === last) return;
+    if (last >= 0) lis[last].classList.remove('on');
+    lis[k].classList.add('on'); last = k;
+    list.scrollTo({ top: lis[k].offsetTop - list.offsetTop - 120, behavior: 'smooth' });
+    now.innerHTML = `<b>Scene ${k + 1}/${cur.scenes.length}</b>${esc(cur.scenes[k][0])}`;
+  });
+  const ours = P.minute.find(m => m.src.includes('night_market'));
+  synced($('#min-cmp'), [P.minute_dense, ours],
+    [{ text: 'Joint (dense)', ...LAB['Joint (dense)'] }, { text: 'OneReel (ours)', ...LAB['OneReel (ours)'] }]);
+})();
+
+// gallery
+const MODELS = Object.keys(P.gallery);
+tabs($('#gal-tabs'), MODELS, i => {
+  const g = $('#gal-grid'); g.innerHTML = '';
+  P.gallery[MODELS[i]].forEach(it => {
+    const card = el('div', 'card'), v = el('video'); v.muted = true; v.loop = true; v.playsInline = true; v.preload = 'none';
+    setSrc(v, it); card.append(v);
+    const st = strip(it.scenes, t => { v.currentTime = t; }), now = el('p', 'now'); card.append(st.node, now);
+    let last = -1;
+    v.addEventListener('timeupdate', () => { const k = st.update(v.currentTime);
+      if (k !== last) { last = k; now.innerHTML = `<b>${k + 1}/${it.scenes.length}</b>${esc(it.scenes[k][0])}`; } });
+    now.innerHTML = `<b>1/${it.scenes.length}</b>${esc(it.scenes[0][0])}`;
+    g.append(card); autoplay(v);
+  });
+});
+
+// HoloCine
+(() => {
+  const v = $('#holo-video'), now = $('#holo-now'), it = P.holocine; setSrc(v, it); v.dataset.manual = 1;
+  let last = -1;
+  const show = () => { const k = sceneAt(it.scenes, v.currentTime); if (k !== last) { last = k; now.innerHTML = `<b>Scene ${k + 1}/${it.scenes.length}</b>${esc(it.scenes[k][0])}`; } };
+  v.addEventListener('timeupdate', show); show();
+})();
+
+$('#copy-bib').onclick = e => { navigator.clipboard.writeText($('#bib').textContent).then(() => { e.target.textContent = 'Copied'; setTimeout(() => e.target.textContent = 'Copy', 1500); }); };
+</script>
+</body>
+</html>
